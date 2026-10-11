@@ -1,0 +1,1453 @@
+/* app/globals.css */
+/* CAIRLAB Design System Variables & Component Styles */
+:root {
+  --blue-primary: #1D4ED8;
+  --blue-dark: #1E40AF;
+  --blue-light: #3B82F6;
+  --blue-subtle: #EFF6FF;
+  --blue-border: #BFDBFE;
+  --ink: #0F172A;
+  --white: #FFFFFF;
+  --mist: #E2E8F0;
+  --line: #E2E8F0;
+  --text: #334155;
+  /* Was #64748B — failed WCAG's 4.5:1 minimum contrast against several
+     light backgrounds already used site-wide (mist, blue-subtle, slate-100:
+     3.86, 4.37, 4.34 respectively). This passes all of them with margin. */
+  --text-soft: #475569;
+  /* Poppins everywhere for a livelier, more modern feel (was a serif pairing
+     for both headings and body copy) — self-hosted via next/font/google,
+     exposed as --font-poppins on <html> in app/layout.tsx. Space Mono stays
+     for the small uppercase labels/kickers dotted around the site. */
+  --font-serif: var(--font-poppins), 'Segoe UI', system-ui, sans-serif;
+  --font-body: var(--font-poppins), 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+/* Real (non-Tailwind) height cascade — layout.tsx's h-full/min-h-full
+   classes are Tailwind utilities that do nothing here (Tailwind's own
+   utilities were never imported into this file), so without this rule
+   html/body have no explicit height at all. That's invisible on normal
+   marketing pages, but Sanity Studio (embedded at /studio) has no
+   position:fixed/100vh fallback of its own — it depends entirely on this
+   cascade to size its layout, including the bottom "Publish" action bar. */
+html, body { height: 100%; }
+body { margin: 0; }
+
+/* NOTE: do not add `overflow-x: hidden` on html/body. Because both have
+   height:100% above, setting any overflow-x on them forces the UA to
+   compute their overflow-y as "auto" too (CSS spec: an explicit non-visible
+   overflow-x paired with an unset overflow-y promotes it) — which turns
+   `body` into its own fixed-height, independently-scrolling box instead of
+   letting the document scroll normally. That silently broke every
+   window.scrollY-based feature (e.g. the scroll-progress ring below always
+   read 0). .cl-root's own overflow-x:hidden (below) contains the nav-drawer
+   horizontal leak just as well, without this side effect. */
+
+.cl-root {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Type weight scale: 400 body copy, 500 nav/buttons, 600 subheadings,
+   700 main headings (h1). */
+.cl-root h2, .cl-root h3, .cl-root .cl-headline {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.cl-root h1 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.cl-mono {
+  font-family: var(--font-mono);
+}
+
+.cl-wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+a { color: inherit; }
+
+/* Announcement bar */
+.cl-announce {
+  background: linear-gradient(135deg, var(--blue-dark), var(--blue-primary));
+  position: relative; overflow: hidden;
+}
+/* Hidden on small devices — the fixed-width CTA button squeezes the text
+   into a column so narrow each word wraps onto its own line, so it's not
+   worth showing on mobile at all rather than fighting that layout. */
+@media (max-width: 640px) {
+  .cl-announce { display: none; }
+}
+.cl-announce-pattern {
+  position: absolute; inset: 0; opacity: 0.12; pointer-events: none;
+  background-image: linear-gradient(to right, #ffffff 1px, transparent 1px),
+                    linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.cl-announce-media {
+  width: 160px; height: 100%; position: absolute; left: 0; top: 0; bottom: 0; display: none;
+  background-image: url('/images/announce.jpg');
+  background-size: cover; background-position: center; z-index: 1;
+}
+.cl-announce-media::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 40%, rgba(30,64,175,0.9) 100%);
+}
+@media (min-width: 760px) { 
+  .cl-announce-media { display: block; } 
+  .cl-announce-inner { padding-left: 184px; }
+}
+.cl-announce-inner {
+  max-width: 1240px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; gap: 20px; position: relative; z-index: 2;
+}
+.cl-announce-text { flex: 1; color: var(--white); }
+.cl-announce-text strong { display: block; font-size: 20px; font-weight: 400; margin-bottom: 2px; font-family: var(--font-serif); letter-spacing: 0.03em; }
+.cl-announce-text span { font-size: 14px; color: #DBEAFE; line-height: 1.4; display: block; max-width: 80ch; font-family: var(--font-mono); font-weight: 400; }
+.cl-announce-cta {
+  flex-shrink: 0; border: 1.5px solid var(--white); color: var(--white); font-weight: 700; font-size: 13px;
+  padding: 8px 16px; border-radius: 6px; text-decoration: none; white-space: nowrap;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+  transition: background 0.2s, color 0.2s; position: relative; z-index: 1;
+}
+.cl-announce-cta:hover { background: var(--white); color: var(--blue-primary); }
+.cl-announce-close {
+  flex-shrink: 0; background: none; border: none; color: var(--white); font-size: 18px; cursor: pointer;
+  opacity: 0.85; line-height: 1; padding: 6px; transition: opacity 0.2s; position: relative; z-index: 1;
+}
+.cl-announce-close:hover { opacity: 1; }
+
+/* Nav */
+.cl-nav-bar { border-bottom: 1px solid var(--line); background: var(--white); position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.cl-nav-inner {
+  max-width: 1240px; margin: 0 auto; padding: 18px 24px; position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.cl-logo { display: flex; align-items: center; gap: 2px; text-decoration: none; flex-shrink: 0; }
+.cl-logo-mark { width: 45px; height: 45px; flex-shrink: 0; }
+.cl-logo-text {
+  font-family: 'Century Gothic', 'Montserrat', 'Futura Bold', sans-serif;
+  font-weight: 800;
+  color: #179CA1;
+  letter-spacing: -0.1px;
+}
+
+/* Mobile hamburger toggle — opens the right-side drawer */
+.cl-nav-toggle {
+  display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+  background: none; border: none; cursor: pointer; flex-shrink: 0; padding: 0;
+}
+@media (min-width: 1080px) { .cl-nav-toggle { display: none; } }
+.cl-nav-toggle-icon, .cl-nav-toggle-icon::before, .cl-nav-toggle-icon::after {
+  display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px;
+}
+.cl-nav-toggle-icon { position: relative; }
+.cl-nav-toggle-icon::before, .cl-nav-toggle-icon::after { content: ''; position: absolute; left: 0; }
+.cl-nav-toggle-icon::before { top: -7px; }
+.cl-nav-toggle-icon::after { top: 7px; }
+
+/* Desktop / tablet inline links */
+.cl-nav-links { display: none; align-items: center; gap: 24px; }
+@media (min-width: 1080px) { .cl-nav-links { display: flex; } }
+.cl-nav-links a {
+  color: var(--text); text-decoration: none; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: color 0.2s;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-nav-links a:hover { color: var(--blue-primary); }
+.cl-nav-links > a.active { color: var(--blue-primary); border-bottom: 2px solid var(--blue-primary); padding-bottom: 22px; margin-bottom: -22px; }
+
+/* Dropdown trigger (e.g. "About") — floating popover, doesn't shift other items */
+.cl-nav-item { position: relative; }
+.cl-nav-item-trigger {
+  background: none; border: none; cursor: pointer; padding: 0; color: var(--text);
+  font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; transition: color 0.2s;
+}
+.cl-nav-item-trigger:hover, .cl-nav-item-trigger.active { color: var(--blue-primary); }
+.cl-nav-caret { font-size: 10px; transition: transform 0.2s; }
+.cl-nav-item-trigger.open .cl-nav-caret { transform: rotate(180deg); }
+
+/* top: 100% (no gap) so the trigger and panel boxes touch — a gap here is
+   what let the pointer leave both boxes while crossing between them and
+   made the panel close before it could be clicked. */
+.cl-nav-dropdown {
+  display: none; position: absolute; top: 100%; left: 0; padding-top: 10px;
+  width: 190px; z-index: 200;
+}
+.cl-nav-dropdown.open { display: block; }
+.cl-nav-dropdown-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; text-decoration: none;
+  background: var(--white); border: 1px solid var(--line); box-shadow: 0 12px 24px rgba(15,23,42,0.1);
+  color: var(--text); font-size: 14px; font-weight: 500; transition: background 0.15s, color 0.15s;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.cl-nav-dropdown-item i { width: 16px; flex-shrink: 0; text-align: center; color: var(--blue-primary); font-size: 13px; }
+.cl-nav-dropdown-item + .cl-nav-dropdown-item { margin-top: 3px; }
+.cl-nav-dropdown-item:hover { background: var(--blue-subtle); color: var(--blue-primary); }
+
+/* Mobile drawer — slides in from the right, below 1080px */
+.cl-nav-scrim {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 300;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+}
+.cl-nav-scrim.open { opacity: 1; pointer-events: auto; }
+@media (min-width: 1080px) { .cl-nav-scrim { display: none; } }
+
+.cl-nav-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 86vw);
+  background: var(--white); z-index: 301; box-shadow: -8px 0 30px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; overflow-y: auto;
+  transform: translateX(100%); transition: transform 0.25s ease;
+}
+.cl-nav-drawer.open { transform: translateX(0); }
+@media (min-width: 1080px) { .cl-nav-drawer { display: none; } }
+
+.cl-nav-drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.cl-nav-drawer-close {
+  background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text-soft);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: background 0.15s, color 0.15s;
+}
+.cl-nav-drawer-close:hover { background: var(--mist); color: var(--ink); }
+
+.cl-nav-drawer-body { padding: 8px 12px 28px; display: flex; flex-direction: column; }
+.cl-nav-drawer-link {
+  display: flex; align-items: center; gap: 12px; padding: 14px 12px; border-radius: 8px; text-decoration: none; color: var(--text);
+  font-weight: 500; font-size: 14px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-nav-drawer-link:hover { background: var(--mist); }
+.cl-nav-drawer-link.active {
+  background: var(--blue-subtle); color: var(--blue-primary);
+  border-left: 3px solid var(--blue-primary); padding-left: 9px;
+}
+.cl-nav-drawer-icon { width: 18px; flex-shrink: 0; text-align: center; color: var(--text-soft); font-size: 14px; }
+.cl-nav-drawer-link.active .cl-nav-drawer-icon,
+.cl-nav-drawer-group-label.active .cl-nav-drawer-icon { color: var(--blue-primary); }
+.cl-nav-drawer-group { margin-top: 6px; }
+.cl-nav-drawer-group-label {
+  display: flex; align-items: center; gap: 12px; padding: 14px 12px 6px; font-size: 13px; font-weight: 500; color: var(--ink);
+  text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-mono);
+}
+.cl-nav-drawer-group-label.active { color: var(--blue-primary); }
+.cl-nav-drawer-child {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px 10px 24px; text-decoration: none; border-radius: 8px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.cl-nav-drawer-child:hover { background: var(--blue-subtle); }
+.cl-nav-drawer-child-icon { width: 16px; flex-shrink: 0; text-align: center; color: var(--blue-primary); font-size: 13px; margin-top: 3px; }
+.cl-nav-drawer-child-text { flex: 1; min-width: 0; }
+.cl-nav-drawer-child-title { display: block; color: var(--blue-primary); font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.cl-nav-drawer-child-desc { display: block; color: var(--text-soft); font-size: 13px; font-weight: 400; line-height: 1.4; }
+
+/* Hero */
+.cl-hero {
+  position: relative; overflow: hidden; min-height: 640px;
+  display: flex; align-items: center; background: var(--ink);
+}
+@media (max-width: 640px) {
+  /* On a short phone screen, a flat 640px min-height can eat the entire
+     visible viewport, leaving almost no video visible around the card
+     (it's capped by whichever is smaller — 640px, or the real screen). */
+  .cl-hero { min-height: min(640px, 100svh); }
+}
+.cl-hero-photo { position: absolute; inset: 0; }
+.cl-hero-photo svg { width: 100%; height: 100%; }
+.cl-hero-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.5) 50%, rgba(15,23,42,0.7) 100%);
+}
+.cl-hero-inner { position: relative; max-width: 1240px; margin: 0 auto; padding: 60px 24px 90px; width: 100%; z-index: 2; }
+/* .cl-hero-card prefix needed: the broader ".cl-hero-card p" rule below
+   also matches this element (it's a <p> inside .cl-hero-card) and has
+   higher specificity (class+element beats a single class), so it was
+   silently winning and forcing this down to 16px regardless of the
+   font-size set here. */
+.cl-hero-card .cl-hero-subtitle {
+  color: #93C5FD; font-size: 20px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; margin: 0 0 12px; font-family: var(--font-mono);
+}
+.cl-hero-card {
+  /* No backdrop-filter — keeps the video/photo behind the card sharp
+     instead of smearing a blurred patch across it. Higher opacity than a
+     blurred glass card would need, to keep the text readable on its own. */
+  background: rgba(255, 255, 255, 0.62);
+  padding: 32px 36px;
+  max-width: 480px;
+  border-radius: 6px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+@media (max-width: 640px) {
+  /* Otherwise the card is nearly as wide as the phone itself, leaving
+     almost no video visible around it. */
+  .cl-hero-card {
+    max-width: 88%; padding: 20px 22px; background: rgba(255, 255, 255, 0.55);
+  }
+}
+.cl-hero-card h1 {
+  font-size: 42px;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+@media (max-width: 640px) { .cl-hero-card h1 { font-size: 28px; } }
+@media (min-width: 640px) { .cl-hero-card h1 { font-size: 48px; } }
+
+.cl-hero-title-accent {
+  background: linear-gradient(90deg, var(--blue-primary), #06B6D4, var(--blue-primary));
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: cl-title-shine 6s linear infinite;
+}
+@keyframes cl-title-shine {
+  to { background-position: 200% center; }
+}
+@media (prefers-reduced-motion: reduce) { .cl-hero-title-accent { animation: none; } }
+.cl-hero-card p { 
+  color: var(--text); 
+  font-size: 16px; 
+  margin: 0 0 24px; 
+  max-width: 38ch; 
+  line-height: 1.4; 
+}
+.cl-hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; }
+/* Scoped to just the hero CTAs (not every .cl-btn-blue/.cl-btn-white site-wide) */
+.cl-hero-ctas a { font-size: 14px; }
+.cl-btn-blue { 
+  background: var(--blue-primary); color: var(--white); font-weight: 500; font-size: 13px; 
+  padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-flex; 
+  align-items: center; justify-content: center; transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(29,78,216,0.25); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-btn-blue:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.cl-btn-white { 
+  background: var(--white); color: var(--ink); font-weight: 500; font-size: 13px; 
+  padding: 12px 24px; border-radius: 6px; text-decoration: none; border: 1.5px solid var(--line); 
+  display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-btn-white:hover { border-color: var(--blue-primary); color: var(--blue-primary); background: var(--blue-subtle); }
+.cl-hero-controls {
+  position: absolute; left: 24px; right: 24px; bottom: 30px;
+  display: flex; align-items: center; justify-content: space-between; z-index: 3;
+  /* On very narrow phones the pause button + progress bar + arrows don't
+     all fit in the available width — rather than clipping the right-hand
+     arrow off-screen and unreachable, let this one row scroll horizontally
+     on its own (the page itself still doesn't scroll sideways). */
+  overflow-x: auto; scrollbar-width: none;
+}
+.cl-hero-controls::-webkit-scrollbar { display: none; }
+.cl-hero-controls > * { flex-shrink: 0; }
+.cl-hero-arrow {
+  width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6);
+  display: flex; align-items: center; justify-content: center; color: var(--white); flex-shrink: 0; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.cl-hero-arrow:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
+.cl-hero-dots { display: none; align-items: center; gap: 8px; }
+@media (min-width: 700px) { .cl-hero-dots { display: flex; } }
+.cl-hero-dots .cl-play {
+  width: 28px; height: 28px; border: 1.5px solid rgba(255,255,255,0.6); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; margin-right: 8px; color: #fff; font-size: 10px;
+}
+.cl-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: all 0.3s; }
+.cl-dot.on { background: var(--white); width: 24px; border-radius: 4px; }
+
+/* Interior page hero (About, Themes, Projects, Contact, Hackathon, ...) */
+.cl-page-hero {
+  background: linear-gradient(135deg, var(--ink), #1E293B);
+  padding: 72px 0 64px;
+  position: relative;
+  overflow: hidden;
+}
+/* Matches the Hackathon hero's height (it has extra content — status
+   badge, powered-by line, CTA — that this plainer hero doesn't). */
+.cl-page-hero--tall { padding-bottom: 168px; }
+/* Photo variant (PageHero `image` prop): photo sits on its own layer so it
+   can be brightened/saturated independently of the dark readability scrim
+   on top (source file untouched — this is a display-time boost, same
+   treatment as the homepage stat cards/hero slider). --ink is a solid
+   fallback underneath for as long as the image file doesn't exist yet. */
+.cl-page-hero--image { background-color: var(--ink); }
+.cl-page-hero--image::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: var(--hero-image, none);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  filter: saturate(1.5) brightness(1.1) contrast(1.05);
+}
+.cl-page-hero--image::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(15,23,42,0.6), rgba(15,23,42,0.4));
+}
+.cl-page-hero--image .cl-wrap { position: relative; z-index: 1; }
+.cl-page-hero-kicker {
+  display: inline-block; padding: 4px 12px; background: rgba(59,130,246,0.15); color: #93C5FD;
+  border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 16px;
+  letter-spacing: 0.05em; text-transform: uppercase; font-family: var(--font-mono);
+}
+.cl-page-hero h1 { color: var(--white); font-size: 44px; margin: 0 0 14px; line-height: 1.1; }
+@media (min-width: 640px) { .cl-page-hero h1 { font-size: 56px; } }
+.cl-page-hero p { color: #CBD5E1; font-size: 18px; max-width: 62ch; margin: 0; line-height: 1.6; }
+
+/* Section shells */
+.cl-section { padding: 90px 0; }
+.cl-section-mist { background: var(--mist); }
+.cl-section-black { background: var(--ink); }
+.cl-section-head { max-width: 720px; margin: 0 auto 48px; text-align: center; }
+.cl-section-head h2 {
+  font-size: 48px; margin: 8px 0 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+@media (max-width: 640px) {
+  /* Icon stacks above the heading text instead of sitting inline beside it. */
+  .cl-section-head h2 { flex-direction: column; gap: 8px; }
+}
+.cl-section-head p { color: var(--text-soft); font-size: 18px; margin: 0 0 24px; line-height: 1.5; }
+.cl-section-black .cl-section-head h2 { color: var(--white); }
+.cl-section-black .cl-section-head p { color: #94A3B8; }
+.cl-section-cta { text-align: center; margin-top: 24px; }
+
+/* Section heading icon badge — replaces raw emoji with a branded icon mark */
+.cl-section-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--blue-subtle); color: var(--blue-primary); font-size: 18px;
+}
+.cl-section-black .cl-section-icon { background: rgba(59,130,246,0.18); color: #93C5FD; }
+
+/* Project spotlight cards (Projects page) — compact grid, one card per project */
+.cl-spotlight-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 720px) { .cl-spotlight-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1080px) { .cl-spotlight-grid { grid-template-columns: repeat(3, 1fr); } }
+.cl-spotlight {
+  position: relative; border-radius: 14px; overflow: hidden;
+  background: var(--white); border: 1px solid var(--line);
+  display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.cl-spotlight::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--blue-light), var(--blue-primary)); z-index: 1; }
+.cl-spotlight:hover { transform: translateY(-3px); border-color: var(--blue-border); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+/* Card thumbnail — set via the `--card-image` inline custom property. Falls
+   back to a plain gray block until a real file exists at that path (see the
+   comment at the top of app/projects/page.tsx). */
+.cl-spotlight-media {
+  width: 100%; aspect-ratio: 16/9; background-color: var(--mist);
+  background-image: var(--card-image, none); background-size: cover; background-position: center;
+}
+.cl-spotlight-body { padding: 20px 24px 24px; display: flex; flex-direction: column; flex: 1; }
+.cl-spotlight-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cl-spotlight-icon {
+  width: 40px; height: 40px; border-radius: 10px; background: var(--blue-subtle); color: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+}
+.cl-spotlight-tag {
+  display: inline-block; padding: 4px 10px; background: var(--blue-primary); color: var(--white);
+  border-radius: 20px; font-size: 11px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-spotlight h3 { color: var(--ink); font-size: 20px; margin: 0 0 10px; line-height: 1.25; }
+.cl-spotlight-desc {
+  color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0 0 18px;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-spotlight-stats { display: flex; gap: 20px; margin-bottom: 18px; }
+.cl-spotlight-stat-num { display: block; font-size: 20px; font-family: var(--font-serif); color: var(--blue-primary); }
+.cl-spotlight-stat-label { display: block; font-size: 10px; color: var(--text-soft); margin-top: 2px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.cl-spotlight-stat-link { display: block; text-decoration: none; cursor: pointer; }
+.cl-spotlight-stat-link:hover .cl-spotlight-stat-num { text-decoration: underline; }
+.cl-spotlight-stat-link:hover .cl-spotlight-stat-label { color: var(--blue-primary); }
+.cl-spotlight-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.cl-spotlight-chip {
+  padding: 4px 10px; border-radius: 6px; background: var(--blue-subtle); color: var(--blue-dark);
+  font-size: 11px; font-weight: 600;
+}
+.cl-spotlight-links { margin-top: auto; display: flex; gap: 20px; flex-wrap: wrap; }
+.cl-spotlight-link {
+  color: var(--blue-primary); text-decoration: none; font-size: 13px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-spotlight-link:hover { text-decoration: underline; }
+.cl-spotlight-title-link { color: inherit; text-decoration: none; }
+.cl-spotlight-title-link:hover { color: var(--blue-primary); }
+
+/* Placeholder slot for a project that hasn't been added yet */
+.cl-spotlight-placeholder {
+  padding: 24px; align-items: center; justify-content: center; text-align: center; gap: 10px;
+  background: var(--mist); border: 1.5px dashed var(--line); min-height: 260px;
+}
+.cl-spotlight-placeholder::before { display: none; }
+.cl-spotlight-placeholder:hover { transform: none; box-shadow: none; border-color: var(--text-soft); }
+.cl-spotlight-placeholder .cl-spotlight-icon { background: var(--white); color: var(--text-soft); margin: 0 auto; }
+.cl-spotlight-placeholder h3 { color: var(--text-soft); font-size: 17px; margin: 0; }
+.cl-spotlight-placeholder p { color: var(--text-soft); font-size: 13px; margin: 0; max-width: 30ch; }
+
+/* Directory layout — sidebar filters + content list, reused by /news and
+   /events. (Team page has its own near-identical .cl-team-sidebar block;
+   this is a separate generic version so the Team page stays untouched.) */
+.cl-directory-layout { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
+@media (min-width: 900px) { .cl-directory-layout { grid-template-columns: 260px 1fr; } }
+.cl-directory-sidebar { display: grid; gap: 6px; padding: 24px; background: var(--mist); border-radius: 12px; position: static; z-index: 5; }
+@media (min-width: 900px) { .cl-directory-sidebar { position: sticky; top: 90px; } }
+.cl-directory-filter-label {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ink);
+  margin: 14px 0 6px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-directory-filter-label:first-child { margin-top: 0; }
+.cl-directory-sidebar input, .cl-directory-sidebar select {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: var(--font-body); font-size: 14px; color: var(--text); background: var(--white);
+}
+.cl-directory-sidebar input:focus, .cl-directory-sidebar select:focus { outline: none; border-color: var(--blue-primary); }
+.cl-directory-apply-btn {
+  margin-top: 20px; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%;
+  background: var(--ink); color: var(--white); font-weight: 700; font-size: 13px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.2s;
+}
+.cl-directory-apply-btn:hover { background: var(--blue-primary); }
+.cl-directory-empty { color: var(--text-soft); }
+
+/* Horizontal "boxy" news card — image left, content right */
+.cl-news-card-h {
+  display: grid; grid-template-columns: 1fr; border: 1px solid var(--line); border-radius: 10px;
+  overflow: hidden; background: var(--white); transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-news-card-h:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-news-card-h-media {
+  position: relative; aspect-ratio: 16/10;
+  background-size: cover; background-position: center; background-color: var(--mist);
+}
+@media (min-width: 700px) {
+  /* Image column and card row both fixed (was 340px wide / height driven
+     by whichever card had the most text, so cards were all different
+     sizes) — every card is now the same 220×220 size regardless of how
+     much text it holds; the text side scrolls/clamps to fit instead of
+     stretching the row. */
+  .cl-news-card-h { grid-template-columns: 257px minmax(0, 1fr); height: 220px; }
+  .cl-news-card-h-media { aspect-ratio: auto; height: 100%; }
+  .cl-news-card-h-body { height: 100%; overflow: hidden; }
+}
+.cl-news-card-h-social { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+.cl-news-card-h-social a {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(15,23,42,0.75); color: var(--white);
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  backdrop-filter: blur(2px); transition: background 0.2s;
+}
+.cl-news-card-h-social a:hover { background: var(--blue-primary); }
+.cl-news-card-h-body { padding: 18px 22px; display: flex; flex-direction: column; }
+.cl-news-card-h-title {
+  font-size: 18px; margin: 0 0 6px; color: var(--blue-primary); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-news-card-h-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-soft); margin-bottom: 8px; font-family: var(--font-mono); }
+.cl-news-card-h-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.cl-news-card-h-desc {
+  color: var(--text); font-size: 13px; line-height: 1.5; margin: 0 0 10px;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-news-card-h-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; overflow: hidden; max-height: 28px; }
+.cl-news-card-h-tag {
+  padding: 4px 10px; border-radius: 20px; background: var(--ink); color: var(--white); font-size: 10px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-news-card-h-footer { text-align: right; margin-top: auto; }
+.cl-news-card-h-footer a {
+  color: var(--blue-primary); font-weight: 700; font-size: 13px; text-decoration: none;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-news-card-h-footer a:hover { text-decoration: underline; }
+
+/* Individual news article page */
+.cl-article-wrap { max-width: 760px; }
+.cl-article-hero-image {
+  aspect-ratio: 16/9; border-radius: 12px; background-size: cover; background-position: center;
+  background-color: var(--mist); margin-bottom: 32px;
+}
+.cl-article-body { color: var(--text); font-size: 18px; line-height: 1.75; }
+.cl-article-body p { margin: 0 0 20px; }
+.cl-article-body h2 { font-size: 28px; margin: 40px 0 16px; }
+.cl-article-body h3 { font-size: 22px; margin: 32px 0 14px; }
+.cl-article-body ul, .cl-article-body ol { margin: 0 0 20px; padding-left: 24px; }
+.cl-article-body li { margin-bottom: 8px; }
+.cl-article-body blockquote {
+  margin: 24px 0; padding: 4px 24px; border-left: 3px solid var(--blue-primary);
+  color: var(--text-soft); font-style: italic;
+}
+.cl-article-body a { color: var(--blue-primary); text-decoration: underline; }
+
+/* "Boxy" shared-grid-line cards (About page "Our Principles") — cells share
+   a 1px line between them instead of gapped floating cards, with a big
+   centered circular icon badge. */
+.cl-boxy-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+@media (min-width: 700px) { .cl-boxy-grid { grid-template-columns: repeat(2, 1fr); } }
+.cl-boxy-card { background: var(--white); padding: 48px 40px; text-align: center; }
+.cl-boxy-icon {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 20px; background: var(--blue-subtle);
+  color: var(--blue-primary); display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.cl-boxy-card h3 { font-size: 22px; margin: 0 0 14px; color: var(--ink); }
+.cl-boxy-card p { font-size: 15px; color: var(--text-soft); line-height: 1.6; margin: 0; }
+
+/* Team page */
+.cl-team-layout { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
+@media (min-width: 900px) { .cl-team-layout { grid-template-columns: 260px 1fr; } }
+
+.cl-team-sidebar {
+  display: grid; gap: 6px; padding: 24px; background: var(--mist); border-radius: 12px;
+  position: static; z-index: 5;
+}
+/* Sticky only once the layout is actually two columns (sidebar beside the
+   grid) — below that it's stacked above the cards in one column, where a
+   pinned sidebar just eats scroll space instead of scrolling away normally. */
+@media (min-width: 900px) { .cl-team-sidebar { position: sticky; top: 90px; } }
+.cl-team-filter-label {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ink);
+  margin: 14px 0 6px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-team-filter-label:first-child { margin-top: 0; }
+.cl-team-sidebar input, .cl-team-sidebar select {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: var(--font-body); font-size: 14px; color: var(--text); background: var(--white);
+}
+.cl-team-sidebar input:focus, .cl-team-sidebar select:focus { outline: none; border-color: var(--blue-primary); }
+.cl-team-apply-btn {
+  margin-top: 20px; padding: 12px; border: none; border-radius: 8px; cursor: pointer;
+  background: var(--ink); color: var(--white); font-weight: 700; font-size: 13px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.2s;
+}
+.cl-team-apply-btn:hover { background: var(--blue-primary); }
+
+/* Cards sit in a grid with extra row-gap so the overlapping avatars (see
+   .cl-team-avatar) have room to stick up above each box without colliding
+   with the row above. */
+.cl-team-grid { display: grid; grid-template-columns: 1fr; gap: 64px 20px; }
+@media (min-width: 640px) { .cl-team-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1200px) { .cl-team-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 899px) {
+  /* Below 900px the sidebar and grid stack (sidebar on top). The
+     .cl-team-layout gap between them (32px) is less than how far the
+     first row's avatar pokes above its card (56px), so it crept up into
+     the sidebar — this clears it. */
+  .cl-team-grid { margin-top: 24px; }
+}
+.cl-team-card {
+  position: relative; background: var(--white); border: 1px solid var(--line);
+  padding: 58px 16px 18px; text-align: center; transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-team-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-team-avatar {
+  width: 96px; height: 96px; border-radius: 50%; background-color: var(--mist);
+  background-image: var(--card-image, none); background-size: cover; background-position: center;
+  position: absolute; top: -56px; left: 50%; transform: translateX(-50%);
+  border: 4px solid var(--white); box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+}
+.cl-team-link { display: block; text-decoration: none; }
+.cl-team-link:hover h3 { color: var(--blue-primary); }
+.cl-team-card h3 { font-size: 17px; font-weight: 700; margin: 0 0 6px; color: var(--ink); transition: color 0.15s; }
+.cl-team-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 20px; margin-bottom: 6px;
+  background: var(--blue-subtle); color: var(--blue-primary); font-size: 10px; font-weight: 700;
+}
+.cl-team-role { font-size: 12px; color: var(--text); margin: 0; line-height: 1.3; }
+
+/* Team member profile page */
+.cl-profile-back {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--blue-primary); text-decoration: none;
+  font-size: 13px; font-weight: 700; margin-bottom: 32px; font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-profile-back:hover { text-decoration: underline; }
+.cl-profile-layout { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: start; }
+@media (min-width: 800px) { .cl-profile-layout { grid-template-columns: 280px 1fr; } }
+.cl-profile-photo {
+  width: 100%; aspect-ratio: 1; border-radius: 16px; background-color: var(--mist);
+  background-image: var(--card-image, none); background-size: cover; background-position: center;
+  border: 4px solid var(--blue-subtle);
+}
+.cl-profile-badge-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.cl-profile-badge {
+  display: inline-block; padding: 5px 14px; border-radius: 20px; background: var(--blue-subtle);
+  color: var(--blue-primary); font-size: 12px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-profile-linkedin {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue-subtle); color: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.cl-profile-linkedin:hover { background: var(--blue-primary); color: var(--white); }
+.cl-profile-content h1 { font-size: 38px; margin: 0 0 6px; color: var(--ink); }
+.cl-profile-role { font-size: 16px; color: var(--blue-primary); font-weight: 700; margin: 0 0 18px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; }
+.cl-profile-spec { font-size: 16px; color: var(--text-soft); font-style: italic; margin: 0 0 24px; line-height: 1.6; }
+.cl-profile-stats { display: flex; gap: 32px; margin-bottom: 28px; }
+.cl-profile-stat-num { display: block; font-size: 30px; font-family: var(--font-serif); color: var(--blue-primary); }
+.cl-profile-stat-label { display: block; font-size: 12px; color: var(--text-soft); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.cl-profile-bio { font-size: 17px; color: var(--text); line-height: 1.7; margin: 0 0 24px; }
+.cl-profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.cl-profile-tag { padding: 6px 14px; border-radius: 20px; background: var(--blue-subtle); color: var(--blue-dark); font-size: 13px; font-weight: 700; }
+
+/* Scroll-reveal animation (see components/homepage/Reveal.tsx) */
+.cl-reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+/* transform: none (not translateY(0)) and will-change: auto once settled —
+   leaving will-change/a non-none transform on indefinitely keeps the element
+   on its own GPU-composited layer, which can render text slightly soft/blurry
+   even after the animation has finished. */
+.cl-reveal-visible { opacity: 1; transform: none; will-change: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .cl-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Shared interior-page components (About, Themes, Projects, Contact, Hackathon) */
+.cl-info-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 760px) { .cl-info-grid { grid-template-columns: repeat(3, 1fr); } }
+.cl-info-card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 32px 28px; background: var(--white);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-info-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-info-icon {
+  font-size: 24px; margin-bottom: 18px; width: 52px; height: 52px; border-radius: 12px;
+  background: var(--blue-subtle); display: flex; align-items: center; justify-content: center;
+}
+.cl-info-card h3 { font-size: 24px; margin: 0 0 10px; color: var(--ink); }
+.cl-info-card p { font-size: 16px; color: var(--text-soft); margin: 0; line-height: 1.6; }
+
+.cl-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 48px; }
+@media (min-width: 760px) { .cl-stats-row { grid-template-columns: repeat(4, 1fr); } }
+.cl-stat { text-align: center; padding: 28px 16px; border-radius: 10px; background: var(--blue-subtle); }
+.cl-stat strong { display: block; font-size: 40px; font-family: var(--font-serif); color: var(--blue-primary); line-height: 1; margin-bottom: 8px; }
+.cl-stat span { font-size: 12px; color: var(--text-soft); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Bigger, more interactive stat cards (homepage impact row) — a modifier on
+   top of .cl-stat, doesn't affect the plainer version used on About/Hackathon. */
+.cl-stats-row--hero { gap: 24px; margin-top: 56px; }
+.cl-stat--hero {
+  position: relative; overflow: hidden;
+  padding: 44px 24px; border-radius: 18px;
+  background-color: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+/* Photo layer, pushed brighter/more saturated via filter (source file is
+   untouched — this is purely a display-time boost) so the cards read as
+   vivid/colourful rather than the muted grading the raw photos came with. */
+.cl-stat--hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: var(--card-image, none);
+  background-size: cover; background-position: center;
+  filter: saturate(1.6) brightness(1.1) contrast(1.08);
+}
+/* Fuller dark overlay across the whole card (was a bottom-only scrim) so
+   the photo reads as a tinted backdrop rather than a bright, competing
+   image — this also boosts contrast for the number/label on top. */
+.cl-stat--hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.8) 100%);
+}
+.cl-stat--hero > * { position: relative; z-index: 1; }
+.cl-stat--hero:hover { transform: translateY(-6px); box-shadow: 0 18px 34px rgba(29,78,216,0.16); }
+/* More pronounced number — bolder weight and a stronger shadow so it pops
+   clearly off the photo instead of blending into it. */
+.cl-stat--hero strong {
+  color: var(--white); font-weight: 800;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.9);
+}
+.cl-stat--hero span { color: var(--white); text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+.cl-stat-icon {
+  width: 52px; height: 52px; border-radius: 14px; margin: 0 auto 18px; background: var(--white);
+  color: var(--blue-primary); display: flex; align-items: center; justify-content: center;
+  font-size: 21px; box-shadow: 0 3px 10px rgba(29,78,216,0.15);
+}
+.cl-stat--hero strong { font-size: 114px; }
+.cl-stat--hero span { font-size: 14px; margin-top: 4px; }
+@media (max-width: 640px) {
+  .cl-stat--hero { padding: 38px 20px; }
+  .cl-stat-icon { width: 46px; height: 46px; margin-bottom: 14px; font-size: 19px; }
+  .cl-stat--hero strong { font-size: 99px; }
+}
+/* Just the Expert Researchers number, visually bigger than its siblings —
+   transform:scale() instead of font-size. font-size reserves more layout
+   space (which is what kept making the card wider/taller every time this
+   was tried) — scale() enlarges the already-laid-out text at paint time
+   only, so the card's box size never changes no matter the scale amount. */
+.cl-stat--hero .cl-stat-number-lg { transform: scale(3); transform-origin: center bottom; }
+
+/* FAQ accordion (scholarship page) — native <details>, no JS needed and
+   keyboard/screen-reader accessible by default. */
+.cl-faq-list { display: grid; gap: 12px; }
+.cl-faq-item { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; }
+.cl-faq-item summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; font-weight: 700; color: var(--ink); font-size: 16px;
+}
+.cl-faq-item summary::-webkit-details-marker { display: none; }
+.cl-faq-item summary i { color: var(--blue-primary); font-size: 13px; transition: transform 0.2s; flex-shrink: 0; }
+.cl-faq-item[open] summary i { transform: rotate(180deg); }
+.cl-faq-item p { margin: 14px 0 0; color: var(--text-soft); font-size: 15px; line-height: 1.6; }
+
+/* Publications page */
+.cl-pub-list { display: grid; gap: 4px; }
+.cl-pub-item {
+  display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cl-pub-item:last-child { border-bottom: none; }
+.cl-pub-year { font-family: var(--font-mono); font-weight: 700; color: var(--blue-primary); font-size: 20px; }
+.cl-pub-item h3 { font-size: 19px; margin: 0 0 6px; line-height: 1.35; }
+.cl-pub-meta { font-size: 14px; color: var(--text-soft); margin: 0 0 10px; font-style: italic; }
+.cl-pub-abstract { font-size: 15px; color: var(--text); line-height: 1.6; margin: 0 0 12px; }
+.cl-pub-footer { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.cl-pub-theme {
+  padding: 3px 10px; border-radius: 20px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; font-family: var(--font-mono);
+}
+.cl-pub-footer a {
+  color: var(--blue-primary); font-size: 13px; font-weight: 700; text-decoration: none;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-pub-footer a:hover { text-decoration: underline; }
+
+/* Scroll-to-top progress ring — fixed circle, every page (except /studio) */
+.cl-scroll-progress-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 90; }
+.cl-scroll-progress {
+  position: relative;
+  width: 56px; height: 56px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
+  background: var(--white); box-shadow: 0 6px 20px rgba(15,23,42,0.15);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-scroll-progress:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,23,42,0.2); }
+.cl-scroll-progress svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.cl-scroll-progress-track { fill: none; stroke: var(--blue-border); stroke-width: 4; }
+.cl-scroll-progress-fill {
+  fill: none; stroke: var(--blue-primary); stroke-width: 4; stroke-linecap: round;
+  transition: stroke-dashoffset 0.1s linear;
+}
+.cl-scroll-progress-logo { position: relative; border-radius: 50%; }
+@media (max-width: 640px) {
+  .cl-scroll-progress-wrap { bottom: 16px; right: 16px; }
+  .cl-scroll-progress { width: 48px; height: 48px; }
+  .cl-scroll-progress svg { width: 48px; height: 48px; }
+  .cl-scroll-progress-logo { width: 24px; height: 24px; }
+}
+
+/* Hackathon popup, anchored above the scroll-progress circle */
+.cl-hackathon-popup {
+  position: absolute; bottom: calc(100% + 14px); right: 0; width: 260px;
+  background: var(--white); border-radius: 12px; padding: 18px 18px 16px;
+  box-shadow: 0 12px 32px rgba(15,23,42,0.18); border: 1px solid var(--line);
+  animation: cl-popup-in 0.25s ease;
+}
+@keyframes cl-popup-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.cl-hackathon-popup-close {
+  position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer;
+  color: var(--text-soft); font-size: 13px; padding: 4px; line-height: 1; transition: color 0.15s;
+}
+.cl-hackathon-popup-close:hover { color: var(--ink); }
+.cl-hackathon-popup-badge {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700;
+  color: var(--blue-primary); text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+.cl-hackathon-popup strong { display: block; font-size: 16px; color: var(--ink); font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+.cl-hackathon-popup p { margin: 0 0 12px; font-size: 13px; color: var(--text-soft); line-height: 1.5; }
+.cl-hackathon-popup-link {
+  color: var(--blue-primary); font-size: 12px; font-weight: 700; text-decoration: none;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-hackathon-popup-link:hover { text-decoration: underline; }
+@media (max-width: 640px) { .cl-hackathon-popup { width: 220px; } }
+
+/* Contact page */
+.cl-contact-layout { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+@media (min-width: 900px) { .cl-contact-layout { grid-template-columns: 1fr 1.2fr; } }
+.cl-contact-info { display: grid; gap: 16px; }
+.cl-contact-item { display: flex; gap: 16px; align-items: flex-start; padding: 20px; border: 1px solid var(--line); border-radius: 10px; }
+.cl-contact-icon {
+  width: 44px; height: 44px; border-radius: 10px; background: var(--blue-subtle); color: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px;
+}
+.cl-contact-item h4 { margin: 0 0 4px; font-size: 18px; color: var(--ink); }
+.cl-contact-item p { margin: 0; color: var(--text-soft); font-size: 15px; line-height: 1.5; }
+.cl-contact-action {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 700;
+  color: var(--blue-primary); text-decoration: none;
+}
+.cl-contact-action i { font-size: 12px; transition: transform 0.2s; }
+.cl-contact-action:hover { text-decoration: underline; }
+.cl-contact-action:hover i { transform: translateX(3px); }
+.cl-contact-social-row { display: flex; gap: 10px; margin-top: 12px; }
+.cl-contact-social-row a {
+  width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); color: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; transition: all 0.2s;
+}
+.cl-contact-social-row a:hover { background: var(--blue-primary); border-color: var(--blue-primary); color: var(--white); }
+.cl-form { display: grid; gap: 18px; background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 32px; }
+.cl-form-row { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 560px) { .cl-form-row { grid-template-columns: 1fr 1fr; } }
+.cl-form label {
+  display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-form input:not([type="file"]), .cl-form textarea, .cl-form select {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: var(--font-body); font-size: 15px; color: var(--text); background: var(--white);
+}
+.cl-form input:focus, .cl-form textarea:focus, .cl-form select:focus { outline: none; border-color: var(--blue-primary); }
+.cl-form textarea { resize: vertical; min-height: 140px; }
+.cl-form button { justify-self: start; border: none; cursor: pointer; }
+.cl-form-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-soft); font-family: var(--font-body); }
+
+.cl-form-error {
+  margin: 0; padding: 12px 14px; border-radius: 8px; background: #FEF2F2; border: 1px solid #FECACA;
+  color: #B91C1C; font-family: var(--font-body); font-size: 14px;
+}
+.cl-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.cl-newsletter-result {
+  padding: 14px 16px; border-radius: 8px; background: var(--mist); font-size: 14px; color: var(--text);
+}
+.cl-newsletter-result p { margin: 0 0 8px; }
+.cl-newsletter-result ul { margin: 0; padding-left: 20px; color: var(--text-soft); font-size: 13px; }
+.cl-newsletter-result li { margin-bottom: 4px; }
+
+.cl-form-success {
+  display: grid; justify-items: start; gap: 10px; background: var(--white); border: 1px solid var(--line);
+  border-radius: 12px; padding: 48px 32px; text-align: left;
+}
+.cl-form-success-icon {
+  width: 48px; height: 48px; border-radius: 999px; background: var(--blue-primary); color: var(--white);
+  display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700;
+}
+.cl-form-success h3 { margin: 0; color: var(--ink); }
+.cl-form-success p { margin: 0; color: var(--text-soft); font-family: var(--font-body); }
+.cl-form-success button { margin-top: 8px; border: none; cursor: pointer; }
+
+/* Multi-section application form */
+.cl-form-section {
+  display: grid; gap: 18px; padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--line);
+}
+.cl-form-section:first-child { padding-top: 0; margin-top: 0; border-top: none; }
+.cl-form-section-title { font-size: 22px; margin: 0; color: var(--ink); }
+.cl-form-file {
+  display: block; padding: 16px; border: 1.5px dashed var(--line); border-radius: 8px; background: var(--blue-subtle);
+}
+/* Visually hidden but still keyboard/screen-reader accessible — the
+   .cl-form-file-trigger label (linked via htmlFor) opens the file picker
+   instead, since native file input buttons look inconsistent and plain. */
+.cl-form-file-input {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.cl-form-file-trigger {
+  display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--text);
+  font-family: var(--font-body); font-weight: 400; text-transform: none; letter-spacing: normal;
+}
+.cl-form-file-trigger i {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--white); color: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(29,78,216,0.15);
+}
+.cl-form-file-trigger:hover i { background: var(--blue-primary); color: var(--white); }
+.cl-form-checkbox-row { display: flex; align-items: flex-start; gap: 10px; }
+.cl-form-checkbox-row input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--blue-primary); flex-shrink: 0; }
+.cl-form-checkbox-row label {
+  text-transform: none; font-family: var(--font-body); font-weight: 400; letter-spacing: normal;
+  font-size: 14px; color: var(--text); margin-bottom: 0;
+}
+
+/* Application progress stepper */
+.cl-stepper { display: flex; flex-wrap: wrap; gap: 0; counter-reset: step; }
+.cl-stepper-step {
+  flex: 1 1 140px; display: flex; align-items: flex-start; gap: 10px; padding: 0 12px 12px 0; position: relative;
+}
+.cl-stepper-number {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--mist); color: var(--text-soft);
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+.cl-stepper-step.active .cl-stepper-number { background: var(--blue-primary); color: var(--white); }
+.cl-stepper-label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.cl-stepper-step.active .cl-stepper-label { color: var(--blue-primary); }
+.cl-stepper-sub { font-size: 12px; color: var(--text-soft); font-weight: 400; margin-top: 2px; }
+
+/* Themes page — quick-jump nav */
+.cl-theme-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 32px 0; }
+.cl-theme-nav a {
+  padding: 8px 16px; border-radius: 20px; background: var(--blue-subtle); color: var(--blue-primary);
+  text-decoration: none; font-size: 12px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; transition: background 0.2s, color 0.2s;
+}
+.cl-theme-nav a:hover { background: var(--blue-primary); color: var(--white); }
+
+/* Themes page — one section per thematic area */
+.cl-theme-head { max-width: 800px; margin: 0 auto 40px; }
+.cl-theme-head h2 { font-size: 32px; margin: 8px 0 14px; line-height: 1.2; }
+.cl-theme-head p { color: var(--text-soft); font-size: 17px; line-height: 1.6; margin: 0; }
+
+.cl-theme-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 720px) { .cl-theme-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1080px) { .cl-theme-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.cl-theme-card {
+  background: var(--white); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-theme-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-theme-card-body { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
+.cl-theme-badges { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.cl-theme-badge {
+  padding: 3px 10px; border-radius: 20px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-size: 11px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-theme-status {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-theme-status.active { background: #DCFCE7; color: #15803D; }
+.cl-theme-status.upcoming { background: var(--mist); color: var(--text-soft); }
+.cl-theme-related { font-size: 12px; color: var(--text-soft); font-style: italic; margin: 0 0 8px; }
+.cl-theme-card h4 { font-size: 19px; margin: 0 0 8px; color: var(--ink); line-height: 1.3; }
+.cl-theme-desc {
+  font-size: 14px; color: var(--text-soft); line-height: 1.6; margin: 0 0 14px;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-theme-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.cl-theme-tag { padding: 3px 9px; border-radius: 6px; background: var(--mist); color: var(--text); font-size: 11px; font-weight: 600; }
+.cl-theme-meta {
+  display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text-soft);
+  margin-bottom: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.cl-theme-meta span { display: flex; align-items: center; gap: 5px; }
+.cl-theme-links { margin-top: auto; display: flex; gap: 18px; }
+.cl-theme-links a {
+  color: var(--blue-primary); text-decoration: none; font-size: 12px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cl-theme-links a.secondary { color: var(--text-soft); }
+.cl-theme-links a:hover { text-decoration: underline; }
+
+/* "More projects coming soon" slot at the end of each theme's card grid */
+.cl-theme-placeholder {
+  padding: 24px; align-items: center; justify-content: center; text-align: center; gap: 10px;
+  background: var(--mist); border: 1.5px dashed var(--line); min-height: 220px;
+}
+.cl-theme-placeholder:hover { transform: none; box-shadow: none; border-color: var(--text-soft); }
+.cl-theme-placeholder .cl-spotlight-icon { background: var(--white); color: var(--text-soft); margin: 0 auto; }
+.cl-theme-placeholder h4 { color: var(--text-soft); font-size: 16px; margin: 0; }
+.cl-theme-placeholder p { color: var(--text-soft); font-size: 13px; margin: 0; max-width: 26ch; }
+
+/* Placeholder banner — reserves space for an image to be added later.
+   Once a real photo is in place (see .cl-image-banner below), this is no
+   longer used on that page but is kept here for reuse elsewhere. */
+.cl-image-placeholder {
+  min-height: 60vh; display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(45deg, var(--mist), var(--mist) 14px, var(--white) 14px, var(--white) 28px);
+  border-bottom: 2px dashed var(--line);
+}
+.cl-image-placeholder span {
+  display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 8px;
+  background: var(--white); border: 1.5px dashed var(--text-soft); color: var(--text-soft);
+  font-size: 13px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+/* Full-width photo banner (holds a real <Image fill>). Uses object-fit:
+   contain so the whole photo stays visible with nothing cropped — the
+   background color fills the letterboxed space around it. */
+.cl-image-banner { position: relative; width: 100%; height: 60vh; min-height: 360px; max-height: 560px; overflow: hidden; background: var(--mist); }
+
+/* Deadline callout */
+.cl-deadline-callout {
+  display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: 10px;
+  background: #FFFBEB; border: 1.5px solid #FDE68A;
+}
+.cl-deadline-icon {
+  width: 44px; height: 44px; border-radius: 10px; background: #FEF3C7; color: #B45309;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px;
+}
+.cl-deadline-callout h4 { margin: 0 0 2px; font-size: 18px; color: #92400E; }
+.cl-deadline-callout p { margin: 0; font-size: 14px; color: #B45309; }
+
+/* Timeline (Hackathon) */
+.cl-timeline { margin-top: 16px; }
+.cl-timeline-item { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 640px) { .cl-timeline-item { grid-template-columns: 160px 1fr; gap: 24px; } }
+.cl-timeline-item:last-child { border-bottom: none; }
+.cl-timeline-date {
+  font-family: var(--font-mono); font-weight: 700; color: var(--blue-primary); font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-timeline-item h4 { margin: 0 0 8px; font-size: 22px; color: var(--ink); }
+.cl-timeline-item p { margin: 0; color: var(--text-soft); line-height: 1.5; }
+.cl-timeline-thumb {
+  width: 64px; height: 64px; border-radius: 12px; flex-shrink: 0; background-color: var(--mist);
+  background-image: var(--card-image, none); background-size: cover; background-position: center;
+}
+
+/* Journey milestones (About page) — big alternating text/image blocks. */
+.cl-journey-blocks { display: grid; gap: 72px; }
+.cl-journey-block { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
+@media (min-width: 860px) {
+  .cl-journey-block { grid-template-columns: 1fr 1fr; gap: 56px; }
+  /* Alternating zig-zag only makes sense once there are two side-by-side
+     columns — below that, this was flipping the image above the year/text
+     on every other block instead of keeping image-under-year consistent. */
+  .cl-journey-block--reverse .cl-journey-block-text { order: 2; }
+  .cl-journey-block--reverse .cl-journey-block-image { order: 1; }
+}
+.cl-journey-year {
+  display: inline-block; padding: 4px 14px; border-radius: 20px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-size: 13px; font-weight: 700; margin-bottom: 16px; font-family: var(--font-mono); letter-spacing: 0.05em;
+}
+.cl-journey-block-text h4 { font-size: 30px; margin: 0 0 16px; color: var(--ink); line-height: 1.2; }
+.cl-journey-block-text p { font-size: 17px; color: var(--text-soft); line-height: 1.7; margin: 0; }
+.cl-journey-block-image {
+  aspect-ratio: 4/3; border-radius: 20px; background-color: var(--mist);
+  background-image: var(--card-image, none); background-size: cover; background-position: center;
+  box-shadow: 0 20px 40px rgba(15,23,42,0.08);
+}
+
+/* Welcome / about split */
+.cl-about-split {
+  display: grid; grid-template-columns: 1fr; gap: 50px; align-items: center;
+}
+@media (min-width: 900px) { .cl-about-split { grid-template-columns: 1.15fr 1fr; gap: 56px; } }
+.cl-about-split h2 { font-size: 42px; margin: 0 0 18px; line-height: 1.1; }
+.cl-about-split p { color: var(--text); font-size: 17px; margin: 0 0 14px; line-height: 1.6; }
+.cl-video-card {
+  position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/10;
+  background: #1E293B; box-shadow: 0 20px 40px rgba(15,23,42,0.15); border: 1px solid var(--line);
+}
+.cl-video-badge {
+  position: absolute; top: 18px; left: 18px; display: flex; align-items: center; gap: 10px;
+  color: var(--white); font-size: 13px; font-weight: 700; background: rgba(15,23,42,0.65); padding: 6px 14px; border-radius: 30px; backdrop-filter: blur(6px);
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-video-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--blue-primary); display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 11px; font-weight: 700; }
+
+/* Overview video card — channel row + title overlaid on the thumbnail,
+   similar to how an embedded video shows its title/channel before play. */
+.cl-video-overlay-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2; pointer-events: none;
+  padding: 16px 20px 40px;
+  background: linear-gradient(180deg, rgba(15,23,42,0.75) 0%, rgba(15,23,42,0.35) 60%, transparent 100%);
+}
+.cl-video-overlay-channel { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cl-video-overlay-channel img { border-radius: 50%; background: var(--white); }
+.cl-video-overlay-channel span { color: var(--white); font-size: 13px; font-weight: 600; }
+.cl-video-overlay-title { display: block; color: var(--white); font-size: 19px; font-weight: 700; line-height: 1.3; }
+@media (max-width: 640px) {
+  .cl-video-overlay-top { padding: 12px 14px 28px; }
+  .cl-video-overlay-title { font-size: 15px; }
+}
+.cl-play-btn {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 68px; height: 68px; border-radius: 50%; background: var(--blue-primary);
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(29,78,216,0.4);
+  transition: transform 0.2s, background 0.2s; cursor: pointer;
+}
+.cl-play-btn:hover { transform: translate(-50%, -50%) scale(1.05); background: var(--blue-dark); }
+
+/* VideoPlayer — video with native controls hidden and a single centered
+   play/pause toggle, styled like cl-play-btn above. */
+.cl-video-player { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cl-video-player video { width: 100%; height: 100%; cursor: pointer; }
+.cl-video-toggle {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 68px; height: 68px; border-radius: 50%; background: var(--blue-primary); border: none;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(29,78,216,0.4);
+  color: var(--white); font-size: 22px; cursor: pointer;
+  transition: transform 0.2s, background 0.2s, opacity 0.25s ease;
+}
+.cl-video-toggle i { margin-left: 3px; } /* optical centering for the play triangle */
+.cl-video-toggle:has(.fa-pause) i { margin-left: 0; }
+.cl-video-toggle:hover { transform: translate(-50%, -50%) scale(1.06); background: var(--blue-dark); }
+.cl-video-toggle--hidden { opacity: 0; pointer-events: none; }
+.cl-video-caption {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+  background: linear-gradient(transparent, rgba(15,23,42,0.85));
+  color: var(--white); font-size: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px;
+}
+
+/* News grid */
+/* Large "boxy" homepage news grid — big edge-to-edge photos with tag pills
+   overlaid on the image and the headline sitting flush underneath, shared
+   1px grid lines instead of individual card borders/shadows. */
+.cl-news-boxy-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+/* The 95%-width cap only applies once cards sit 3-across on wider screens
+   (that's what made each card narrower) — small screens stay full-width
+   (single column), which is ~10% wider than the capped desktop version. */
+@media (min-width: 860px) { .cl-news-boxy-grid { grid-template-columns: repeat(3, 1fr); max-width: 95%; margin: 0 auto; } }
+.cl-news-boxy-card {
+  background: var(--white); display: flex; flex-direction: column; text-decoration: none; color: inherit;
+  border: 1px solid var(--line); border-radius: 0; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-news-boxy-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-news-boxy-media {
+  /* 3/2 instead of 4/3 — an 11% shorter image area at the same width. */
+  position: relative; aspect-ratio: 3/2; overflow: hidden; background-color: var(--mist);
+}
+.cl-news-boxy-card:hover .cl-news-boxy-media { filter: brightness(1.04); }
+.cl-news-boxy-tags { position: absolute; left: 16px; bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+.cl-news-boxy-tag {
+  background: rgba(15, 23, 42, 0.82); color: var(--white); font-size: 11px; font-weight: 700;
+  padding: 6px 12px; border-radius: 999px; text-transform: uppercase;
+  font-family: var(--font-mono); letter-spacing: 0.04em; backdrop-filter: blur(2px);
+}
+.cl-news-boxy-title {
+  /* Smaller than before (was 22px) so more of the headline fits before the
+     2-line clamp truncates it with "…". */
+  font-size: 18px; line-height: 1.3; margin: 0; padding: 22px 20px 8px; min-height: 64px;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-news-boxy-meta {
+  display: flex; flex-wrap: wrap; gap: 14px; padding: 0 20px 22px; font-size: 12px;
+  color: var(--text-soft); font-family: var(--font-mono);
+}
+.cl-news-boxy-meta span { display: inline-flex; align-items: center; gap: 6px; }
+/* Bigger 3D calendar graphic in place of the small calendar glyph, sitting
+   after the date text (right side) instead of before it. */
+.cl-icon-date-img { height: 26px; width: auto; display: inline-block; }
+
+/* Research project cards */
+.cl-projects-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 860px) { .cl-projects-grid { grid-template-columns: repeat(3, 1fr); } }
+.cl-project-card { 
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--white);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cl-project-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-project-media {
+  aspect-ratio: 16/10; position: relative; padding: 24px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  background-size: cover; background-position: center;
+}
+.cl-project-media::after {
+  content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(15,23,42,0.8));
+}
+.cl-project-tag {
+  position: absolute; top: 16px; left: 16px; z-index: 2;
+  background: var(--blue-primary); color: var(--white); font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 4px; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.05em;
+}
+.cl-project-media h3 {
+  color: var(--white); font-size: 20px; line-height: 1.25; margin: 0; position: relative; z-index: 2;
+}
+.cl-project-body { padding: 24px; }
+.cl-project-body h4 { font-size: 26px; margin: 0 0 8px; color: var(--ink); }
+.cl-project-date { font-size: 13px; color: var(--text-soft); display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; }
+.cl-project-desc {
+  font-size: 14px; color: var(--text-soft); margin: 0; line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Partner strip */
+.cl-partners-wrap { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--mist); }
+.cl-partners {
+  display: flex; flex-wrap: wrap; gap: 48px; align-items: center; justify-content: center;
+  padding: 40px 24px;
+}
+.cl-partner-logo {
+  color: var(--text-soft); font-weight: 700; font-size: 15px; letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 8px; opacity: 0.75; transition: opacity 0.2s;
+  font-family: var(--font-mono); text-transform: uppercase;
+}
+.cl-partner-logo:hover { opacity: 1; }
+/* opacity:0.75 from the base rule above dilutes #94A3B8 down to an
+   effective ~4.46:1 contrast against this dark background — just under
+   WCAG's 4.5:1 minimum. Full opacity here fixes it (6.96:1); the dimmed
+   default look is only needed on the light-background variant. */
+.cl-section-black .cl-partner-logo { color: #94A3B8; opacity: 1; }
+
+/* Logo strip (homepage) — same restrained card treatment used for Team/
+   Themes cards (white bg, thin border, hover lift+shadow) rather than a
+   heavy tile or a bare unstyled logo. */
+.cl-partners-strip { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 24px; padding: 12px 24px; }
+.cl-partner-strip-item {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 180px;
+  background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+@media (max-width: 640px) {
+  /* A swipeable horizontal slide instead of wrapping into a stacked grid. */
+  .cl-partners-strip {
+    flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding: 12px 24px 16px;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .cl-partners-strip::-webkit-scrollbar { display: none; }
+  .cl-partner-strip-item { flex: 0 0 auto; scroll-snap-align: start; }
+}
+.cl-partners-swipe-hint { display: none; }
+@media (max-width: 640px) {
+  .cl-partners-swipe-hint {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: var(--text-soft); font-size: 12px; font-family: var(--font-mono);
+    text-transform: uppercase; letter-spacing: 0.04em; margin: 4px 0 0;
+    animation: cl-swipe-hint-pulse 1.8s ease-in-out infinite;
+  }
+}
+@keyframes cl-swipe-hint-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-partners-swipe-hint { animation: none; }
+}
+.cl-partner-strip-item:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.cl-partner-strip-logo {
+  width: 100%; height: 72px; background-image: var(--card-image, none);
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+.cl-partner-strip-name {
+  font-size: 12px; color: var(--text-soft); font-weight: 700; text-align: center; line-height: 1.4;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; margin: 0;
+}
+
+/* "Get involved" CTA under the partner strip */
+.cl-partners-cta { text-align: center; max-width: 560px; margin: 48px auto 8px; }
+.cl-partners-cta-icon {
+  width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 16px; background: var(--white);
+  color: var(--blue-primary); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 3px 10px rgba(29,78,216,0.12); border: 1px solid var(--blue-border);
+}
+.cl-partners-cta h3 { font-size: 24px; margin: 0 0 10px; color: var(--ink); }
+.cl-partners-cta p { color: var(--text-soft); font-size: 15px; line-height: 1.6; margin: 0 0 22px; }
+.cl-partner-strip-badge {
+  display: inline-block; padding: 3px 10px; background: var(--blue-subtle); color: var(--blue-primary);
+  border-radius: 20px; font-size: 10px; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+/* Hackathon page */
+.cl-hackathon-status {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 12px;
+  background: rgba(34,197,94,0.15); color: #86EFAC; border-radius: 20px;
+  font-size: 13px; font-weight: 700; margin-bottom: 16px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-hackathon-powered { color: #93C5FD; font-size: 14px; font-weight: 700; margin: 0 0 6px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.cl-hackathon-tagline {
+  max-width: 760px; margin: 0 auto; text-align: center; padding: 28px 32px;
+  border: 1.5px solid var(--blue-border); border-radius: 12px; background: var(--blue-subtle);
+  color: var(--blue-dark); font-size: 20px; font-family: var(--font-serif); line-height: 1.5;
+}
+
+/* Events list */
+.cl-events-layout { display: grid; grid-template-columns: 1fr; gap: 36px; align-items: center; }
+@media (min-width: 900px) { .cl-events-layout { grid-template-columns: 240px 1fr; gap: 48px; } }
+.cl-events-calendar { display: none; justify-content: center; }
+.cl-events-calendar img { width: 100%; max-width: 220px; height: auto; }
+@media (min-width: 900px) { .cl-events-calendar { display: flex; } }
+.cl-events-list { display: grid; gap: 18px; }
+.cl-event-card {
+  background: var(--white); border-radius: 10px; overflow: hidden;
+  display: grid; grid-template-columns: 1fr; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  border: 1px solid rgba(255,255,255,0.08); transition: transform 0.2s;
+}
+.cl-event-card:hover { transform: translateX(4px); }
+@media (min-width: 560px) { .cl-event-card { grid-template-columns: 190px 1fr; } }
+.cl-event-thumb {
+  background: #1E293B; position: relative; min-height: 140px;
+  background-size: cover; background-position: center;
+}
+.cl-event-thumb-tag {
+  position: absolute; top: 12px; left: 12px; color: var(--white); background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-event-body { padding: 24px; background: var(--white); }
+.cl-event-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-size: 13px; color: var(--text-soft); margin-bottom: 10px; font-weight: 700; font-family: var(--font-mono);
+}
+.cl-event-meta span { display: flex; align-items: center; gap: 6px; }
+.cl-event-pill {
+  background: var(--blue-subtle); color: var(--blue-primary); font-weight: 700; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase;
+}
+.cl-event-body h3 { font-size: 26px; margin: 0 0 12px; line-height: 1.25; color: var(--ink); }
+.cl-event-footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+.cl-event-body a { color: var(--blue-primary); font-size: 13px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 4px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.cl-event-body a:hover { text-decoration: underline; }
+.cl-event-status-closed { color: var(--text-soft); font-size: 12px; background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); text-transform: uppercase; }
+
+/* Footer */
+.cl-footer {
+  background: var(--ink); position: relative; overflow: hidden; padding: 70px 0 0; color: #94A3B8;
+}
+.cl-footer-pattern {
+  position: absolute; inset: 0; opacity: 0.08; pointer-events: none;
+  background-image: linear-gradient(to right, #ffffff 1px, transparent 1px),
+                    linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.cl-footer-newsletter { position: relative; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.cl-footer-newsletter-inner {
+  max-width: 1240px; margin: 0 auto; padding: 0 24px 40px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;
+}
+.cl-footer-newsletter-inner h4 { margin: 0 0 4px; font-size: 20px; color: var(--white); font-weight: 400; }
+.cl-footer-newsletter-inner p { margin: 0; color: #94A3B8; font-size: 14px; }
+.cl-newsletter-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.cl-newsletter-row input {
+  padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06); color: var(--white); font-size: 14px; min-width: 200px; flex: 1;
+}
+.cl-newsletter-row input::placeholder { color: #94A3B8; }
+.cl-newsletter-row input:focus { outline: none; border-color: var(--blue-light); }
+.cl-newsletter-row button {
+  padding: 10px 20px; border-radius: 8px; border: none; background: var(--blue-primary); color: var(--white);
+  font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; transition: background 0.2s; font-family: inherit;
+}
+.cl-newsletter-row button:hover { background: var(--blue-dark); }
+.cl-newsletter-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+.cl-newsletter-error { color: #FCA5A5; font-size: 13px; margin: 8px 0 0; }
+.cl-newsletter-success { color: #86EFAC; font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px; }
+.cl-footer-inner {
+  position: relative; max-width: 1240px; margin: 0 auto; padding: 0 24px 48px;
+  display: grid; grid-template-columns: 1fr; gap: 48px;
+}
+@media (min-width: 760px) { .cl-footer-inner { grid-template-columns: 1.4fr 1.2fr 1fr; } }
+.cl-footer h4 { color: var(--white); font-size: 26px; margin: 0 0 16px; font-weight: 400; letter-spacing: 0.02em; }
+.cl-footer-links h4 { font-size: 14px; margin-bottom: 16px; color: var(--white); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.cl-footer p { color: #94A3B8; font-size: 18px; margin: 0 0 14px; max-width: 44ch; line-height: 1.5; }
+.cl-footer-copy { color: #94A3B8; font-size: 13px; margin-top: 22px; font-family: var(--font-mono); }
+.cl-footer-cols { display: flex; gap: 60px; flex-wrap: wrap; }
+.cl-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.cl-footer a { color: #93C5FD; text-decoration: none; font-size: 14px; font-weight: 700; transition: color 0.2s; font-family: var(--font-mono); }
+.cl-footer a:hover { color: var(--white); text-decoration: underline; }
+.cl-social-row { display: flex; gap: 12px; margin-top: 14px; }
+.cl-social-row a {
+  width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid rgba(147,197,253,0.3); color: #93C5FD;
+  display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px;
+  transition: all 0.2s; font-family: var(--font-mono); font-weight: 700;
+}
+.cl-social-row a:hover { background: var(--blue-primary); border-color: var(--blue-primary); color: var(--white); }
+.cl-footer-qr {
+  display: flex; align-items: center; gap: 14px; margin-top: 24px; padding: 14px;
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; background: rgba(255,255,255,0.03);
+  text-decoration: none; max-width: 320px; transition: background 0.2s, border-color 0.2s;
+}
+.cl-footer-qr:hover { background: rgba(255,255,255,0.06); border-color: rgba(147,197,253,0.4); }
+.cl-footer-qr img { border-radius: 6px; background: #fff; padding: 4px; flex-shrink: 0; }
+.cl-footer-qr strong { display: block; color: var(--white); font-size: 14px; font-weight: 700; margin-bottom: 4px; font-family: var(--font-body); }
+.cl-footer-qr span { display: block; color: #94A3B8; font-size: 13px; line-height: 1.4; font-family: var(--font-body); font-weight: 400; }
+.cl-footer-status {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 20px 24px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: #94A3B8; font-size: 13px; position: relative; font-family: var(--font-mono);
+}
+.cl-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 8px rgba(34,197,94,0.6); }

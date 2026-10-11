@@ -1,0 +1,5 @@
+# Raw, uncompressed source videos/images kept locally for reference — never
+# served by the site (not under public/); some are too large for Vercel's
+# 100MB per-file upload limit.
+_source-videos/
+_source-images/
