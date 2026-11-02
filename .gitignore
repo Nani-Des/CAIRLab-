@@ -48,3 +48,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Notes files for AI coding tools (Next.js re-creates these locally) - keep out of the repo
+CLAUDE.md
+AGENTS.md
