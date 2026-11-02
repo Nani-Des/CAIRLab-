@@ -24,7 +24,7 @@ Copy `.env.local.example` → set these in your hosting platform's environment v
 | `SANITY_API_TOKEN` | **No — secret** | Write-access token. Used server-side only (API routes, `sanity/lib/writeClient.ts`). **Never** prefix with `NEXT_PUBLIC_`. |
 | `RESEND_API_KEY` | **No — secret** | Resend API key for sending emails |
 | `CONTACT_TO_EMAIL` | No | Inbox that receives contact form / scholarship application / newsletter-signup-notification emails |
-| `NEXT_PUBLIC_SITE_URL` | Yes | The real production domain, no trailing slash (e.g. `https://cairlab.org`). Used to build the sitemap, robots.txt, and Open Graph/social-share URLs. **Get this right before launch** — social previews and search indexing depend on it. |
+| `NEXT_PUBLIC_SITE_URL` | Yes | The real production domain, no trailing slash (e.g. `https://cairlab.knust.edu.gh`). Used to build the sitemap, robots.txt, and Open Graph/social-share URLs. **Get this right before launch** — social previews and search indexing depend on it. |
 | `NEWSLETTER_ADMIN_PASSWORD` | **No — secret** | Gates `/send-newsletter`, an internal tool with no real login system behind it (see §5) |
 
 **Before going live**, regenerate `SANITY_API_TOKEN` in [sanity.io/manage](https://sanity.io/manage) (Project → API → Tokens) and set a real, unique `NEWSLETTER_ADMIN_PASSWORD` — the current values in `.env.local` were used during development and should be treated as already-exposed.
@@ -36,7 +36,7 @@ Copy `.env.local.example` → set these in your hosting platform's environment v
 Sanity blocks API requests from origins it doesn't recognize. Before the deployed site can read/write any content (including Studio working at all):
 
 1. Go to [sanity.io/manage](https://sanity.io/manage) → your project → **API** → **CORS Origins**.
-2. Add your production URL (e.g. `https://cairlab.org`), with **"Allow credentials"** checked (Studio needs this to log in).
+2. Add your production URL (e.g. `https://cairlab.knust.edu.gh`), with **"Allow credentials"** checked (Studio needs this to log in).
 3. If there's a preview/staging domain too (e.g. Vercel's auto-generated `*.vercel.app` preview URLs), add those as well, or Studio previews will fail with CORS errors that look unrelated to CORS.
 
 Without this step, the site will build and deploy fine, then show empty content everywhere (all pages fall back to their hardcoded `FALLBACK_*` content — see §6) and `/studio` won't load.

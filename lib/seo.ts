@@ -4,10 +4,15 @@
 // iMessage, etc.) show a real title, description, and image instead of a
 // bare link. See NEXT_PUBLIC_SITE_URL in .env.local.example.
 
-// The live site's address. Set NEXT_PUBLIC_SITE_URL to override (e.g. the
-// Vercel test copy); otherwise this default is used for email links, the
-// sitemap, robots.txt and social-share previews.
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cairlab.knust.edu.gh').replace(/\/$/, '');
+// The live site's address, used for email links (e.g. employer approval
+// links), the sitemap, robots.txt and social-share previews. Set
+// NEXT_PUBLIC_SITE_URL to override it (e.g. for the Vercel test copy).
+// cairlab.org was only ever a placeholder in the setup docs — it isn't
+// CAIRLab's domain — so if a server was configured with it, ignore it.
+const PRODUCTION_URL = 'https://cairlab.knust.edu.gh';
+const configuredUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+export const SITE_URL =
+  configuredUrl && !/^https?:\/\/(www\.)?cairlab\.org$/i.test(configuredUrl) ? configuredUrl : PRODUCTION_URL;
 
 // A branded default image (1200x630, the standard OG size) used by any
 // page that doesn't have its own more specific photo (e.g. a news post's
