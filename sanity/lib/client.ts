@@ -9,5 +9,8 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true, // fast, cached reads — fine for public content like this
+  // Not the CDN: Next.js already caches every page, so Sanity is only asked
+  // when a page is rebuilt — and right after a publish (see
+  // app/api/revalidate/route.ts) the CDN can still be serving the old copy.
+  useCdn: false,
 });

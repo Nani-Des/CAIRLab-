@@ -31,9 +31,9 @@ export const sitePopupType = {
       defineField({
         name: 'linkHref',
         title: 'Link goes to',
-        description: 'A path on this site (e.g. /hackathon) or a full URL.',
+        description: 'A path on this site (e.g. /initiatives) or a full URL.',
         type: 'string',
-        initialValue: '/hackathon',
+        initialValue: '/initiatives',
       }),
     ],
     preview: {

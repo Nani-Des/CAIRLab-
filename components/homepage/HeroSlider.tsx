@@ -119,8 +119,6 @@ export default function HeroSlider() {
       {/* Floating Card Content */}
       <div className="cl-hero-inner">
         <div className="cl-hero-card">
-          <p className="cl-hero-subtitle"><span style={{ color: '#0345fa' }}>Cybersecurity and Artificial Intelligence Research Lab</span></p>
-          
           {currentIndex === 0 ? (
             <>
               <h1 style={{ fontFamily: 'var(--font-serif)', color: 'var(--ink)' }}>

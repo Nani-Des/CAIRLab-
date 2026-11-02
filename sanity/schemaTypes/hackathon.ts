@@ -17,7 +17,21 @@ export const hackathonType = defineType({
       description: 'Controls which hackathon shows on the page — the most recent date wins.',
       validation: (rule) => rule.required(),
     }),
-    defineField({ name: 'status', title: 'Status badge', type: 'string', initialValue: 'Registration Open' }),
+    defineField({
+      name: 'registrationOpen',
+      title: 'Registration open',
+      description:
+        'Turn this off to close registration: the "Register Now" button is replaced by "Registration Closed" and the badge changes to match. Turn it on to reopen.',
+      type: 'boolean',
+      initialValue: true,
+    }),
+    defineField({
+      name: 'status',
+      title: 'Status badge',
+      description: 'Shown while registration is open, e.g. "Registration Open". Replaced by "Registration Closed" when the switch above is off.',
+      type: 'string',
+      initialValue: 'Registration Open',
+    }),
     defineField({ name: 'poweredBy', title: 'Powered by', type: 'string' }),
     defineField({ name: 'description', title: 'Hero description', type: 'text', rows: 3 }),
     defineField({ name: 'heroImage', title: 'Hero background image', type: 'image', options: { hotspot: true } }),

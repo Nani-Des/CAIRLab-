@@ -35,7 +35,7 @@ const FALLBACK_EVENTS: EventItem[] = [
     eventType: 'Hackathon',
     format: 'Hybrid',
     registrationStatus: 'open',
-    registrationLink: '/hackathon',
+    registrationLink: '/initiatives#hackathon',
     image: '',
   },
   {
@@ -47,7 +47,7 @@ const FALLBACK_EVENTS: EventItem[] = [
     eventType: 'Hackathon',
     format: 'Hybrid',
     registrationStatus: 'closed',
-    registrationLink: '/hackathon',
+    registrationLink: '/initiatives#hackathon',
     image: '',
   },
   {

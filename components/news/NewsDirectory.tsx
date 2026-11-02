@@ -6,7 +6,10 @@
 // (not live-as-you-type), same pattern as the Team page directory.
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import Pagination, { usePagination } from '@/components/layout/Pagination';
+
+const PAGE_SIZE = 6;
 
 export type NewsItem = {
   id: string;
@@ -48,6 +51,9 @@ export default function NewsDirectory({ news }: { news: NewsItem[] }) {
       return true;
     });
   }, [news, applied]);
+
+  const { page, pageCount, pageItems, setPage } = usePagination(filtered, PAGE_SIZE);
+  const listRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="cl-directory-layout">
@@ -96,15 +102,18 @@ export default function NewsDirectory({ news }: { news: NewsItem[] }) {
         <button
           type="button"
           className="cl-directory-apply-btn"
-          onClick={() => setApplied({ search: searchDraft, category: categoryDraft, year: yearDraft, byline: bylineDraft })}
+          onClick={() => {
+            setApplied({ search: searchDraft, category: categoryDraft, year: yearDraft, byline: bylineDraft });
+            setPage(1);
+          }}
         >
           Apply Filters
         </button>
       </aside>
 
-      <div>
+      <div ref={listRef} style={{ scrollMarginTop: '100px' }}>
         {filtered.length === 0 && <p className="cl-directory-empty">No news match those filters.</p>}
-        {filtered.map((item) => (
+        {pageItems.map((item) => (
           <div className="cl-news-card-h" key={item.id} style={{ marginBottom: '24px' }}>
             <div
               className="cl-news-card-h-media"
@@ -146,6 +155,7 @@ export default function NewsDirectory({ news }: { news: NewsItem[] }) {
             </div>
           </div>
         ))}
+        <Pagination page={page} pageCount={pageCount} onChange={setPage} scrollTo={listRef} />
       </div>
     </div>
   );

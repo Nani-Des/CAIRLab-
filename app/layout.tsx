@@ -44,7 +44,7 @@ async function getSitePopup() {
         title: doc.title as string,
         tagline: (doc.tagline as string) || '',
         linkText: (doc.linkText as string) || 'Learn More →',
-        linkHref: (doc.linkHref as string) || '/hackathon',
+        linkHref: (doc.linkHref as string) || '/initiatives',
       };
     }
   } catch (err) {

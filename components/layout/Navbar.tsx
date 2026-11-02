@@ -49,7 +49,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/news', label: 'News', icon: 'fa-newspaper' },
   { href: '/events', label: 'Events', icon: 'fa-calendar-days' },
   { href: '/contact', label: 'Contact', icon: 'fa-envelope' },
-  { href: '/hackathon', label: 'Hackathon', icon: 'fa-laptop-code' },
+  { href: '/initiatives', label: 'Initiatives', icon: 'fa-laptop-code' },
   { href: '/apply-for-scholarship', label: 'Apply For Scholarship', icon: 'fa-graduation-cap' },
 ];
 
@@ -128,7 +128,10 @@ export default function Navbar() {
             className="cl-logo-mark"
             priority
           />
-          <span className="cl-logo-text">CAIRLab</span>
+          <span className="cl-logo-words">
+            <span className="cl-logo-text">CAIRLab</span>
+            <span className="cl-logo-tagline">Cybersecurity &amp; Artificial Intelligence Research Lab, KNUST</span>
+          </span>
         </Link>
 
         {/* Desktop / tablet inline nav */}

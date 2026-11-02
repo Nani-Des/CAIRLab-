@@ -79,7 +79,7 @@ export default function Footer() {
             <ul>
               <li><Link href="/events">Events</Link></li>
               <li><Link href="/contact">Contact</Link></li>
-              <li><Link href="/hackathon">Hackathon</Link></li>
+              <li><Link href="/initiatives">Initiatives</Link></li>
               <li><Link href="/apply-for-scholarship">Apply For Scholarship</Link></li>
               <li><Link href="/contact">Get Involve</Link></li>
             </ul>

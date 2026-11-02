@@ -83,12 +83,6 @@ a { color: inherit; }
   background: linear-gradient(135deg, var(--blue-dark), var(--blue-primary));
   position: relative; overflow: hidden;
 }
-/* Hidden on small devices — the fixed-width CTA button squeezes the text
-   into a column so narrow each word wraps onto its own line, so it's not
-   worth showing on mobile at all rather than fighting that layout. */
-@media (max-width: 640px) {
-  .cl-announce { display: none; }
-}
 .cl-announce-pattern {
   position: absolute; inset: 0; opacity: 0.12; pointer-events: none;
   background-image: linear-gradient(to right, #ffffff 1px, transparent 1px),
@@ -127,11 +121,23 @@ a { color: inherit; }
   opacity: 0.85; line-height: 1; padding: 6px; transition: opacity 0.2s; position: relative; z-index: 1;
 }
 .cl-announce-close:hover { opacity: 1; }
+/* On small devices the side-by-side layout squeezes the text into a column
+   so narrow each word wraps onto its own line — so stack it instead: text
+   on top, a full-width CTA below, and the close button pinned top-right. */
+@media (max-width: 640px) {
+  .cl-announce-inner { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .cl-announce-text { flex: 1 1 0; min-width: 0; padding-right: 28px; }
+  .cl-announce-text strong { font-size: 16px; }
+  .cl-announce-text span { font-size: 12px; }
+  .cl-announce-cta { flex: 1 1 100%; text-align: center; }
+  .cl-announce-close { position: absolute; top: 8px; right: 8px; }
+}
 
 /* Nav */
 .cl-nav-bar { border-bottom: 1px solid var(--line); background: var(--white); position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
 .cl-nav-inner {
-  max-width: 1240px; margin: 0 auto; padding: 18px 24px; position: relative;
+  /* Full width: logo flush against the left edge, links pushed to the far right. */
+  padding: 18px 24px 18px 0; position: relative;
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
 }
 .cl-logo { display: flex; align-items: center; gap: 2px; text-decoration: none; flex-shrink: 0; }
@@ -142,6 +148,16 @@ a { color: inherit; }
   color: #179CA1;
   letter-spacing: -0.1px;
 }
+/* What CAIRLab stands for, under the name in the main nav — same teal as
+   the wordmark, small enough to wrap onto two lines without crowding the links. */
+.cl-logo-words { display: flex; flex-direction: column; }
+.cl-logo-tagline {
+  font-size: 10px; font-weight: 600; line-height: 1.3; color: #179CA1;
+  max-width: 190px; margin-top: 2px;
+}
+/* Between 1080px (where the full link row appears) and 1280px there's no
+   room for both the tagline and every link, so the links win. */
+@media (min-width: 1080px) and (max-width: 1279px) { .cl-logo-tagline { display: none; } }
 
 /* Mobile hamburger toggle — opens the right-side drawer */
 .cl-nav-toggle {
@@ -160,6 +176,8 @@ a { color: inherit; }
 /* Desktop / tablet inline links */
 .cl-nav-links { display: none; align-items: center; gap: 24px; }
 @media (min-width: 1080px) { .cl-nav-links { display: flex; } }
+/* Small laptops: tighter spacing so every link fits on one row. */
+@media (min-width: 1080px) and (max-width: 1199px) { .cl-nav-links { gap: 16px; } }
 .cl-nav-links a {
   color: var(--text); text-decoration: none; font-size: 14px; font-weight: 700;
   display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: color 0.2s;
@@ -174,6 +192,7 @@ a { color: inherit; }
   background: none; border: none; cursor: pointer; padding: 0; color: var(--text);
   font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 4px;
   font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; transition: color 0.2s;
+  white-space: nowrap;
 }
 .cl-nav-item-trigger:hover, .cl-nav-item-trigger.active { color: var(--blue-primary); }
 .cl-nav-caret { font-size: 10px; transition: transform 0.2s; }
@@ -272,22 +291,15 @@ a { color: inherit; }
   background: linear-gradient(105deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.5) 50%, rgba(15,23,42,0.7) 100%);
 }
 .cl-hero-inner { position: relative; max-width: 1240px; margin: 0 auto; padding: 60px 24px 90px; width: 100%; z-index: 2; }
-/* .cl-hero-card prefix needed: the broader ".cl-hero-card p" rule below
-   also matches this element (it's a <p> inside .cl-hero-card) and has
-   higher specificity (class+element beats a single class), so it was
-   silently winning and forcing this down to 16px regardless of the
-   font-size set here. */
-.cl-hero-card .cl-hero-subtitle {
-  color: #93C5FD; font-size: 20px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.1em; margin: 0 0 12px; font-family: var(--font-mono);
-}
 .cl-hero-card {
   /* No backdrop-filter — keeps the video/photo behind the card sharp
      instead of smearing a blurred patch across it. Higher opacity than a
      blurred glass card would need, to keep the text readable on its own. */
   background: rgba(255, 255, 255, 0.62);
-  padding: 32px 36px;
-  max-width: 480px;
+  /* Wide enough for "Welcome to CAIRLab" on one line and both buttons side
+     by side, which keeps the card short. */
+  padding: 62px 36px;
+  max-width: 640px;
   border-radius: 6px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -296,16 +308,18 @@ a { color: inherit; }
   /* Otherwise the card is nearly as wide as the phone itself, leaving
      almost no video visible around it. */
   .cl-hero-card {
-    max-width: 88%; padding: 20px 22px; background: rgba(255, 255, 255, 0.55);
+    max-width: 92%; padding: 20px 20px; background: rgba(255, 255, 255, 0.55);
   }
 }
 .cl-hero-card h1 {
   font-size: 42px;
+  font-weight: 800;
   line-height: 1.1;
   margin: 0 0 12px;
   color: var(--ink);
+  white-space: nowrap;
 }
-@media (max-width: 640px) { .cl-hero-card h1 { font-size: 28px; } }
+@media (max-width: 640px) { .cl-hero-card h1 { font-size: clamp(18px, 5.6vw, 28px); } }
 @media (min-width: 640px) { .cl-hero-card h1 { font-size: 48px; } }
 
 .cl-hero-title-accent {
@@ -400,8 +414,10 @@ a { color: inherit; }
   border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 16px;
   letter-spacing: 0.05em; text-transform: uppercase; font-family: var(--font-mono);
 }
-.cl-page-hero h1 { color: var(--white); font-size: 44px; margin: 0 0 14px; line-height: 1.1; }
-@media (min-width: 640px) { .cl-page-hero h1 { font-size: 56px; } }
+.cl-page-hero h1, .cl-initiatives-hackathon h2 { color: var(--white); font-size: 44px; margin: 0 0 14px; line-height: 1.1; }
+@media (min-width: 640px) { .cl-page-hero h1, .cl-initiatives-hackathon h2 { font-size: 56px; } }
+/* The hackathon banner sits mid-page on /initiatives, below the programmes. */
+.cl-initiatives-hackathon { scroll-margin-top: 90px; }
 .cl-page-hero p { color: #CBD5E1; font-size: 18px; max-width: 62ch; margin: 0; line-height: 1.6; }
 
 /* Section shells */
@@ -1290,26 +1306,44 @@ a { color: inherit; }
   .cl-partners-strip {
     flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding: 12px 24px 16px;
     scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    /* Snap cards to the padded edge, so the first card's resting position is scrollLeft 0. */
+    scroll-padding-inline: 24px;
   }
   .cl-partners-strip::-webkit-scrollbar { display: none; }
   .cl-partner-strip-item { flex: 0 0 auto; scroll-snap-align: start; }
 }
-.cl-partners-swipe-hint { display: none; }
-@media (max-width: 640px) {
-  .cl-partners-swipe-hint {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    color: var(--text-soft); font-size: 12px; font-family: var(--font-mono);
-    text-transform: uppercase; letter-spacing: 0.04em; margin: 4px 0 0;
-    animation: cl-swipe-hint-pulse 1.8s ease-in-out infinite;
-  }
+/* Swipe controls (components/homepage/PartnersCarousel.tsx) — only shown
+   when the cards overflow, i.e. on small screens. */
+.cl-partners-carousel { position: relative; }
+.cl-partners-carousel.is-scrollable::before,
+.cl-partners-carousel.is-scrollable::after {
+  content: ''; position: absolute; top: 0; bottom: 64px; width: 48px; pointer-events: none; z-index: 1;
+  transition: opacity 0.2s;
 }
-@keyframes cl-swipe-hint-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+.cl-partners-carousel.is-scrollable::before { left: 0; background: linear-gradient(90deg, var(--mist), transparent); }
+.cl-partners-carousel.is-scrollable::after { right: 0; background: linear-gradient(270deg, var(--mist), transparent); }
+.cl-partners-carousel.at-start::before, .cl-partners-carousel.at-end::after { opacity: 0; }
+.cl-partners-arrow {
+  position: absolute; top: calc(50% - 32px); transform: translateY(-50%); z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 15px;
+  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35); transition: opacity 0.2s, transform 0.2s;
 }
-@media (prefers-reduced-motion: reduce) {
-  .cl-partners-swipe-hint { animation: none; }
+.cl-partners-arrow.prev { left: 6px; }
+.cl-partners-arrow.next { right: 6px; animation: cl-partners-nudge 1.6s ease-in-out infinite; }
+.cl-partners-arrow:disabled { opacity: 0; pointer-events: none; animation: none; }
+@keyframes cl-partners-nudge {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(4px); }
 }
+.cl-partners-dots { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+.cl-partners-dots button {
+  width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer;
+  background: var(--blue-border); transition: width 0.25s, background 0.25s;
+}
+.cl-partners-dots button.active { width: 24px; background: var(--blue-primary); }
+@media (prefers-reduced-motion: reduce) { .cl-partners-arrow.next { animation: none; } }
 .cl-partner-strip-item:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
 .cl-partner-strip-logo {
   width: 100%; height: 72px; background-image: var(--card-image, none);
@@ -1451,3 +1485,230 @@ a { color: inherit; }
   color: #94A3B8; font-size: 13px; position: relative; font-family: var(--font-mono);
 }
 .cl-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 8px rgba(34,197,94,0.6); }
+/* Pagination — shared by the News, Events and Team directories
+   (components/layout/Pagination.tsx). A soft pill tray holding round page
+   buttons; the current page gets the brand gradient + glow. */
+.cl-pagination-wrap {
+  display: flex; justify-content: center; margin-top: 40px;
+}
+.cl-pagination {
+  display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center;
+  gap: 6px; padding: 6px; border-radius: 999px;
+  background: var(--white); border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+.cl-pagination button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 42px; height: 42px; padding: 0 10px; border-radius: 999px;
+  border: none; background: transparent; color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.cl-pagination button:hover:not(:disabled):not(.active) {
+  background: var(--blue-subtle); color: var(--blue-primary); transform: translateY(-1px);
+}
+.cl-pagination button.active {
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white);
+  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35);
+}
+.cl-pagination button:focus-visible { outline: 2px solid var(--blue-light); outline-offset: 2px; }
+.cl-pagination .cl-pagination-arrow {
+  padding: 0 18px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-pagination .cl-pagination-arrow:hover:not(:disabled) {
+  background: var(--blue-primary); color: var(--white); transform: translateY(-1px);
+}
+.cl-pagination button:disabled { opacity: 0.35; cursor: default; }
+.cl-pagination-gap { color: var(--text-soft); padding: 0 6px; font-weight: 600; }
+/* Team rows sit 64px apart, so the pager needs more room than that to read
+   as separate from the last row of cards. */
+.cl-team-layout .cl-pagination-wrap { margin-top: 80px; }
+@media (max-width: 480px) {
+  .cl-pagination button { min-width: 36px; height: 36px; font-size: 14px; }
+  .cl-pagination .cl-pagination-arrow { padding: 0 12px; }
+  .cl-pagination-arrow-label { display: none; }
+}
+
+/* Initiatives section on the Hackathon & Initiatives page (app/hackathon) */
+.cl-initiative {
+  background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 32px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); scroll-margin-top: 100px;
+}
+.cl-initiative + .cl-initiative { margin-top: 28px; }
+.cl-initiative-kicker {
+  display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.cl-initiative h3 { font-size: 30px; margin: 14px 0 10px; color: var(--ink); }
+.cl-initiative-desc { color: var(--text); font-size: 16px; line-height: 1.65; max-width: 80ch; margin: 0 0 24px; }
+.cl-initiative-tracks { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 28px; align-items: start; }
+@media (min-width: 640px) { .cl-initiative-tracks { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .cl-initiative-tracks { grid-template-columns: repeat(4, 1fr); } }
+/* Track cards expand (native <details>) to show a plain-language summary. */
+.cl-initiative-track {
+  border-radius: 12px; background: var(--blue-subtle); border: 1.5px solid transparent; transition: border-color 0.2s, background 0.2s;
+}
+.cl-initiative-track:hover, .cl-initiative-track[open] { border-color: var(--blue-border); }
+.cl-initiative-track[open] { background: var(--white); box-shadow: 0 10px 24px rgba(29, 78, 216, 0.1); }
+.cl-initiative-track summary {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; list-style: none;
+}
+.cl-initiative-track summary::-webkit-details-marker { display: none; }
+.cl-initiative-track summary:focus-visible { outline: 2px solid var(--blue-light); outline-offset: 2px; border-radius: 12px; }
+.cl-initiative-track i { color: var(--blue-primary); font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+.cl-initiative-track span { flex: 1; font-weight: 600; color: var(--ink); font-size: 14px; line-height: 1.35; }
+.cl-initiative-track .cl-initiative-track-caret {
+  width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--white); font-size: 11px; transition: transform 0.25s, background 0.2s;
+}
+.cl-initiative-track[open] .cl-initiative-track-caret { transform: rotate(180deg); background: var(--blue-subtle); }
+.cl-initiative-track p {
+  margin: 0; padding: 0 16px 16px 50px; color: var(--text); font-size: 14px; line-height: 1.55;
+}
+.cl-initiative-track small {
+  display: block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--blue-primary);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;
+}
+.cl-initiative-links { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 760px) { .cl-initiative-links { grid-template-columns: repeat(3, 1fr); } }
+.cl-initiative-link {
+  display: flex; align-items: flex-start; gap: 14px; padding: 18px; border-radius: 12px; text-decoration: none;
+  border: 1.5px solid var(--line); background: var(--white); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.cl-initiative-link:hover { border-color: var(--blue-primary); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(29, 78, 216, 0.12); }
+.cl-initiative-link-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 18px;
+}
+.cl-initiative-link-text { display: grid; gap: 4px; }
+.cl-initiative-link-text strong { color: var(--blue-primary); font-size: 16px; }
+.cl-initiative-link-text span { color: var(--text-soft); font-size: 14px; line-height: 1.45; }
+@media (max-width: 640px) { .cl-initiative { padding: 24px 20px; } .cl-initiative h3 { font-size: 24px; } }
+
+/* AI for Professionals registration (app/initiatives/ai-for-professionals) */
+.cl-initiative-register { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 0 0 28px; }
+.cl-initiative-register span { color: var(--text-soft); font-size: 14px; }
+.cl-aipro { display: grid; gap: 24px; }
+.cl-aipro-step-title { font-size: 26px; margin: 0; text-align: center; color: var(--ink); }
+.cl-aipro-roles { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 640px) { .cl-aipro-roles { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .cl-aipro-roles { grid-template-columns: repeat(3, 1fr); } }
+.cl-aipro-role {
+  display: grid; justify-items: start; gap: 8px; text-align: left; cursor: pointer;
+  padding: 24px; border-radius: 14px; border: 2px solid var(--line); background: var(--white);
+  font-family: var(--font-body); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.cl-aipro-role:hover { border-color: var(--blue-border); transform: translateY(-2px); }
+.cl-aipro-role.active { border-color: var(--blue-primary); box-shadow: 0 10px 28px rgba(29, 78, 216, 0.15); background: var(--blue-subtle); }
+.cl-aipro-role-icon {
+  width: 48px; height: 48px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--blue-subtle); color: var(--blue-primary); font-size: 20px;
+}
+.cl-aipro-role.active .cl-aipro-role-icon { background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); }
+.cl-aipro-role-title { font-size: 18px; font-weight: 700; color: var(--ink); }
+.cl-aipro-role-desc { font-size: 14px; color: var(--text-soft); line-height: 1.5; }
+.cl-aipro-fieldset { border: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.cl-aipro-fieldset legend {
+  font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 10px; padding: 0;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-aipro-pending-icon {
+  width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: #FEF3C7; color: #B45309; font-size: 22px;
+}
+.cl-aipro-modal-backdrop {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, 0.6);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  animation: cl-popup-in 0.2s ease;
+}
+.cl-aipro-modal {
+  position: relative; width: 100%; max-width: 480px; background: var(--white); border-radius: 16px;
+  padding: 32px 28px 28px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+}
+.cl-aipro-modal h3 { margin: 12px 0 8px; font-size: 22px; color: var(--ink); }
+.cl-aipro-modal p { color: var(--text); font-size: 15px; line-height: 1.55; margin: 0 0 16px; }
+.cl-aipro-modal-close {
+  position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 18px;
+  color: var(--text-soft); cursor: pointer; padding: 6px; line-height: 1;
+}
+.cl-aipro-modal-icon {
+  width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 20px;
+}
+.cl-aipro-modal-form { display: grid; gap: 12px; }
+.cl-aipro-modal-form label {
+  font-size: 12px; font-weight: 700; color: var(--ink);
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-aipro-modal-form input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: var(--font-body); font-size: 15px; color: var(--text);
+}
+.cl-aipro-modal-form input:focus { outline: none; border-color: var(--blue-primary); }
+.cl-aipro-modal-form button { border: none; cursor: pointer; justify-self: stretch; text-align: center; }
+.cl-aipro-modal .cl-aipro-modal-notice {
+  margin: 0; padding: 12px 14px; border-radius: 8px; background: #FEF3C7; color: #92400E; font-size: 14px;
+}
+.cl-aipro-details { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; margin: 0; font-size: 15px; }
+.cl-aipro-details dt { font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-soft); padding-top: 2px; }
+.cl-aipro-details dd { margin: 0; color: var(--ink); word-break: break-word; }
+.cl-aipro-approve-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+.cl-aipro-approve-buttons button {
+  display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; color: var(--white);
+  padding: 13px 26px; border-radius: 10px; font-family: var(--font-body); font-size: 16px; font-weight: 700;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.cl-aipro-approve { background: #16A34A; box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3); }
+.cl-aipro-reject { background: #DC2626; }
+.cl-aipro-approve-buttons button:hover:not(:disabled) { transform: translateY(-1px); }
+.cl-aipro-approve-buttons button:disabled { opacity: 0.6; cursor: not-allowed; }
+.cl-aipro-decision { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 10px; }
+.cl-aipro-decision p { margin: 0; font-size: 15px; }
+.cl-aipro-decision i { font-size: 24px; }
+.cl-aipro-decision.approved { background: #F0FDF4; color: #166534; }
+.cl-aipro-decision.rejected { background: #FEF2F2; color: #991B1B; }
+/* Employees: survey step that unlocks the registration form */
+.cl-aipro-survey-step {
+  display: flex; gap: 18px; align-items: flex-start; padding: 24px; border-radius: 14px;
+  border: 2px solid var(--blue-border); background: var(--blue-subtle);
+}
+.cl-aipro-survey-step.done { border-color: #86EFAC; background: #F0FDF4; }
+.cl-aipro-step-badge {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--blue-primary); color: var(--white); font-weight: 700; font-size: 16px;
+}
+.cl-aipro-survey-step.done .cl-aipro-step-badge { background: #16A34A; }
+.cl-aipro-survey-body h3 { margin: 4px 0 8px; font-size: 19px; color: var(--ink); }
+.cl-aipro-survey-body p { margin: 0 0 16px; color: var(--text); font-size: 15px; line-height: 1.55; }
+.cl-aipro-survey-body .cl-form-hint { margin-top: 2px; }
+.cl-aipro-survey-body input[type="checkbox"]:disabled + label { opacity: 0.7; }
+.cl-aipro-spam-notice {
+  display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 0; padding: 12px 14px; border-radius: 8px;
+  background: #FEF3C7; color: #92400E; font-size: 14px; line-height: 1.5; text-align: left;
+}
+.cl-aipro-spam-notice i { margin-top: 3px; }
+
+/* Registration closed (AI for Professionals switch + hackathon switch in Studio) */
+.cl-registration-closed {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 6px;
+  background: var(--mist); color: var(--text-soft); font-family: var(--font-mono); font-size: 13px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cl-registration-closed--dark { background: rgba(255, 255, 255, 0.12); color: #E2E8F0; }
+.cl-hackathon-status.closed { background: rgba(148, 163, 184, 0.2); color: #E2E8F0; }
+.cl-hackathon-status.closed .cl-status-dot { background: #94A3B8; box-shadow: none; }
+.cl-aipro-closed-icon {
+  width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--mist); color: var(--text-soft); font-size: 22px;
+}
+/* Employer registration: "complete your registration" nomination step */
+.cl-aipro-next-step {
+  display: grid; justify-items: start; gap: 10px; width: 100%; margin: 6px 0 4px; padding: 20px 22px;
+  border-radius: 12px; background: var(--blue-subtle); border: 1.5px solid var(--blue-border);
+}
+.cl-aipro-next-step strong { color: var(--ink); font-size: 17px; display: flex; align-items: center; gap: 10px; }
+.cl-aipro-next-step strong i { color: var(--blue-primary); }
+.cl-aipro-next-step p { margin: 0; color: var(--text); }
+

@@ -4,7 +4,10 @@
 // Client component: search box + Type/Format filters + the event card list.
 // Filters only apply on "Apply Filters", same pattern as News/Team.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import Pagination, { usePagination } from '@/components/layout/Pagination';
+
+const PAGE_SIZE = 3;
 
 export type EventItem = {
   id: string;
@@ -37,6 +40,9 @@ export default function EventsDirectory({ events }: { events: EventItem[] }) {
       return true;
     });
   }, [events, applied]);
+
+  const { page, pageCount, pageItems, setPage } = usePagination(filtered, PAGE_SIZE);
+  const listRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="cl-directory-layout">
@@ -75,15 +81,19 @@ export default function EventsDirectory({ events }: { events: EventItem[] }) {
         <button
           type="button"
           className="cl-directory-apply-btn"
-          onClick={() => setApplied({ search: searchDraft, type: typeDraft, format: formatDraft })}
+          onClick={() => {
+            setApplied({ search: searchDraft, type: typeDraft, format: formatDraft });
+            setPage(1);
+          }}
         >
           Apply Filters
         </button>
       </aside>
 
+      <div ref={listRef} style={{ scrollMarginTop: '100px' }}>
       <div className="cl-events-list">
         {filtered.length === 0 && <p className="cl-directory-empty">No events match those filters.</p>}
-        {filtered.map((event, i) => (
+        {pageItems.map((event, i) => (
           <div className="cl-event-card" key={event.id}>
             <div
               className="cl-event-thumb"
@@ -115,6 +125,8 @@ export default function EventsDirectory({ events }: { events: EventItem[] }) {
             </div>
           </div>
         ))}
+      </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} scrollTo={listRef} />
       </div>
     </div>
   );

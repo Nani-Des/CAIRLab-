@@ -6,7 +6,10 @@
 // matching the reference layout this was modeled on.
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import Pagination, { usePagination } from '@/components/layout/Pagination';
+
+const PAGE_SIZE = 8;
 
 export type Member = {
   name: string;
@@ -40,6 +43,9 @@ export default function TeamDirectory({ team }: { team: Member[] }) {
       return true;
     });
   }, [team, applied]);
+
+  const { page, pageCount, pageItems, setPage } = usePagination(filtered, PAGE_SIZE);
+  const listRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="cl-team-layout">
@@ -78,17 +84,21 @@ export default function TeamDirectory({ team }: { team: Member[] }) {
         <button
           type="button"
           className="cl-team-apply-btn"
-          onClick={() => setApplied({ search: searchDraft, position: positionDraft, role: roleDraft })}
+          onClick={() => {
+            setApplied({ search: searchDraft, position: positionDraft, role: roleDraft });
+            setPage(1);
+          }}
         >
           Apply Filters
         </button>
       </aside>
 
+      <div ref={listRef} style={{ scrollMarginTop: '100px' }}>
       <div className="cl-team-grid">
         {filtered.length === 0 && (
           <p style={{ color: 'var(--text-soft)', gridColumn: '1 / -1' }}>No team members match those filters.</p>
         )}
-        {filtered.map((member) => (
+        {pageItems.map((member) => (
           <div className="cl-team-card" key={member.slug}>
             <Link href={`/team/${member.slug}`} className="cl-team-link">
               <div
@@ -103,6 +113,8 @@ export default function TeamDirectory({ team }: { team: Member[] }) {
             <p className="cl-team-role">{member.role}</p>
           </div>
         ))}
+      </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} scrollTo={listRef} />
       </div>
     </div>
   );

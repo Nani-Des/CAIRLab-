@@ -35,8 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/events', priority: 0.8, freq: 'weekly' as const },
     { path: '/team', priority: 0.7, freq: 'monthly' as const },
     { path: '/contact', priority: 0.6, freq: 'yearly' as const },
-    { path: '/hackathon', priority: 0.7, freq: 'weekly' as const },
+    { path: '/initiatives', priority: 0.7, freq: 'weekly' as const },
+    { path: '/initiatives/ai-for-professionals', priority: 0.6, freq: 'monthly' as const },
     { path: '/apply-for-scholarship', priority: 0.7, freq: 'monthly' as const },
+    { path: '/compute-share', priority: 0.6, freq: 'monthly' as const },
     { path: '/publications', priority: 0.7, freq: 'weekly' as const },
   ];
 

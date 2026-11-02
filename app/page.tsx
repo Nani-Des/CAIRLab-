@@ -7,6 +7,7 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import HeroSlider from '@/components/homepage/HeroSlider';
 import Reveal from '@/components/homepage/Reveal';
+import PartnersCarousel from '@/components/homepage/PartnersCarousel';
 import CountUp from '@/components/homepage/CountUp';
 import VideoPlayer from '@/components/media/VideoPlayer';
 import { client } from '@/sanity/lib/client';
@@ -96,7 +97,7 @@ const FALLBACK_EVENTS = [
     eventType: 'Hackathon',
     format: 'Hybrid',
     registrationStatus: 'open',
-    registrationLink: '/hackathon',
+    registrationLink: '/initiatives#hackathon',
     image: '',
   },
   {
@@ -107,7 +108,7 @@ const FALLBACK_EVENTS = [
     eventType: 'Hackathon',
     format: 'Hybrid',
     registrationStatus: 'closed',
-    registrationLink: '/hackathon',
+    registrationLink: '/initiatives#hackathon',
     image: '',
   },
 ];
@@ -386,20 +387,7 @@ export default async function HomePage() {
 
                 Trusted by Leading Global Institutions
               </p>
-              <div className="cl-partners-strip">
-                {PARTNERS.map((partner) => (
-                  <div className="cl-partner-strip-item" key={partner.name}>
-                    <div
-                      className="cl-partner-strip-logo"
-                      role="img"
-                      aria-label={partner.name}
-                      style={{ '--card-image': `url(${partner.image})` } as CSSProperties}
-                    />
-                    <p className="cl-partner-strip-name">{partner.name}</p>
-                    {partner.badge && <span className="cl-partner-strip-badge">{partner.badge}</span>}
-                  </div>
-                ))}
-              </div>
+              <PartnersCarousel partners={PARTNERS} />
             </Reveal>
             <Reveal delay={100}>
               <div className="cl-partners-cta">

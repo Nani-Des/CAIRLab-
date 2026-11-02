@@ -12,6 +12,9 @@ import { teamMemberType } from './teamMember';
 import { sitePopupType } from './sitePopup';
 import { themeType } from './theme';
 import { homeStatsType } from './homeStats';
+import { aiProRegistrationType } from './aiProRegistration';
+import { aiProSettingsType } from './aiProSettings';
+import { aiProBroadcastType } from './aiProBroadcast';
 
 export const schemaTypes = [
   sitePopupType,
@@ -24,4 +27,7 @@ export const schemaTypes = [
   publicationType,
   teamMemberType,
   themeType,
+  aiProRegistrationType,
+  aiProSettingsType,
+  aiProBroadcastType,
 ];

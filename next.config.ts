@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   // relies on inline scripts/styles it controls itself, and a CSP strict
   // enough to matter risks breaking Studio in ways that are easy to miss
   // in testing. Add one later as a deliberate, tested step if you want it.
+  // The Hackathon page became the Initiatives page — keep old links working
+  // (Sanity events, the site popup, anything already shared).
+  async redirects() {
+    return [{ source: '/hackathon', destination: '/initiatives#hackathon', permanent: true }];
+  },
+
   async headers() {
     return [
       {

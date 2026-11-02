@@ -44,10 +44,10 @@ export default function AnnouncementBar() {
       <div className="cl-announce-inner">
         <div className="cl-announce-text">
           <strong>CAIRLAB Compute Share Initiative</strong>
-          <span>Want to get involved as a student, researcher, or engineer?</span>
+          <span>Are you interested in writing CEH or any other EC-Council exam?</span>
         </div>
-        <Link href="/apply-for-scholarship" className="cl-announce-cta">
-          Apply to Get Involved →
+        <Link href="/compute-share" className="cl-announce-cta">
+          Apply Here →
         </Link>
         <button className="cl-announce-close" aria-label="Dismiss" onClick={dismiss}>
           ✕
