@@ -19,6 +19,13 @@ const nextConfig: NextConfig = {
     return [{ source: '/hackathon', destination: '/initiatives#hackathon', permanent: true }];
   },
 
+  // Search engines and some browsers still request the classic /favicon.ico
+  // address — serve the CAIRLab logo (app/icon.png) there instead of a 404,
+  // so they stop showing a stale/default icon.
+  async rewrites() {
+    return [{ source: '/favicon.ico', destination: '/icon.png' }];
+  },
+
   async headers() {
     return [
       {

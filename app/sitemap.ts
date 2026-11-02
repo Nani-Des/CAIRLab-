@@ -3,13 +3,13 @@
 // support for the MetadataRoute.Sitemap type. Helps Google/Bing discover
 // every page instead of only what they happen to find by following links.
 //
-// NEXT_PUBLIC_SITE_URL should be set once the site has a real deployed
-// domain (see .env.local.example) — defaults to https://cairlab.org
-// (the domain used elsewhere on the site, e.g. hello@cairlab.org) until then.
+// URLs are built from SITE_URL (lib/seo.ts) — https://cairlab.knust.edu.gh
+// unless NEXT_PUBLIC_SITE_URL overrides it.
 
 import type { MetadataRoute } from 'next';
 import { TEAM, slugify } from '@/lib/team';
 import { client } from '@/sanity/lib/client';
+import { SITE_URL } from '@/lib/seo';
 
 async function getTeamSlugs(): Promise<string[]> {
   try {
@@ -23,7 +23,6 @@ async function getTeamSlugs(): Promise<string[]> {
   return TEAM.map((member) => slugify(member.name));
 }
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cairlab.org').replace(/\/$/, '');
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
