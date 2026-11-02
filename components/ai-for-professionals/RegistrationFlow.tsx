@@ -2,7 +2,7 @@
 
 // components/ai-for-professionals/RegistrationFlow.tsx
 // Registration for the KNUST–GIZ AI for Professionals programme:
-//  1. Visitor picks Employer, Employee, or Tertiary student / Graduate.
+//  1. Visitor picks Employer, Employee, or Graduate.
 //  2. Employer fills in the organisation / labour-market survey -> done.
 //  3. Employee first completes the Employees Survey (KoboToolbox, opens in
 //     a new tab) and confirms it, which unlocks their details form; then a
@@ -10,7 +10,7 @@
 //     submitting -> "pending approval" until the employer clicks the link.
 // Kobo can't tell us who completed the survey, so the confirmation is
 // self-declared — staff can cross-check emails against the Kobo export.
-//  4. Graduate / tertiary student fills in an application -> done (no
+//  4. Graduate fills in an application -> done (no
 //     employer approval needed).
 // Submits to app/api/ai-for-professionals/register/route.ts.
 
@@ -216,8 +216,8 @@ export default function RegistrationFlow({ initialRole }: { initialRole?: Role }
           onClick={() => { setRole('graduate'); setErrorMessage(''); }}
         >
           <span className="cl-aipro-role-icon"><i className="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
-          <span className="cl-aipro-role-title">Tertiary student / Graduate</span>
-          <span className="cl-aipro-role-desc">Final-year students and graduates: apply to join the training.</span>
+          <span className="cl-aipro-role-title">Graduate</span>
+          <span className="cl-aipro-role-desc">Completed your studies? Apply to join the training.</span>
         </button>
       </div>
 
@@ -351,7 +351,7 @@ export default function RegistrationFlow({ initialRole }: { initialRole?: Role }
             <Select id="studyStatus" label="Current status *" options={STUDY_STATUSES} required />
           </div>
           <div className="cl-form-row">
-            <Field id="completionYear" label="Year of completion (or expected) *" type="number" min="1990" max="2035" required />
+            <Field id="completionYear" label="Year you graduated *" type="number" min="1980" max={new Date().getFullYear()} required />
             <Field id="location" label="Town / region" placeholder="e.g. Kumasi, Ashanti" />
           </div>
           <Select id="track" label="Which track interests you? *" options={TRACKS} required placeholder="Select a track" />

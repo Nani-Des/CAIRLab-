@@ -40,7 +40,7 @@ export const aiProRegistrationType = defineType({
         list: [
           { title: 'Employer', value: 'employer' },
           { title: 'Employee', value: 'employee' },
-          { title: 'Graduate / tertiary student', value: 'graduate' },
+          { title: 'Graduate', value: 'graduate' },
         ],
       },
     }),

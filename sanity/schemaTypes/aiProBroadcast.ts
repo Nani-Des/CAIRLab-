@@ -12,7 +12,7 @@ export const BROADCAST_AUDIENCES = [
   { title: 'All employees (staff)', value: 'employees' },
   { title: 'Employees — approved only', value: 'employeesApproved' },
   { title: 'Employees — pending approval only', value: 'employeesPending' },
-  { title: 'Graduates / tertiary students', value: 'graduates' },
+  { title: 'Graduates', value: 'graduates' },
 ] as const;
 
 export const aiProBroadcastType = defineType({

@@ -1,7 +1,7 @@
 // app/api/ai-for-professionals/register/route.ts
 // Saves an AI for Professionals registration to Sanity and sends the emails:
 //  - Employer: saved as "employer" + thank-you email.
-//  - Graduate / tertiary student: saved as "applied" + confirmation email.
+//  - Graduate: saved as "applied" + confirmation email.
 //  - Employee: saved as "pending", their employer/manager gets an email with
 //    a single-use approval link (and, if their organisation hasn't registered
 //    yet, an invitation to register it too), and the employee is told their
@@ -133,6 +133,10 @@ export async function POST(request: Request) {
     const phone = str(body, 'phone', 40);
     if (!qualification || !studyStatus || !isTrack(track) || !programmeOfStudy || !/^\d{4}$/.test(completionYear) || !motivation || !phone) {
       return NextResponse.json({ error: 'Please fill in all required fields.' }, { status: 400 });
+    }
+    // This route is for graduates only — not current students.
+    if (Number(completionYear) > new Date().getFullYear()) {
+      return NextResponse.json({ error: 'This application is for graduates only. Please enter the year you graduated.' }, { status: 400 });
     }
     try {
       await writeClient.create({

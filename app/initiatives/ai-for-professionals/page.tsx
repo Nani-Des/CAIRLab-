@@ -34,7 +34,7 @@ export default async function AiForProfessionalsPage({ searchParams }: { searchP
       <PageHero
         kicker="Initiatives · KNUST × GIZ"
         title="AI for Professionals — Registration"
-        description="Employers register their organisation, staff register with their employer's approval, and tertiary students and graduates apply to join."
+        description="Employers register their organisation, staff register with their employer's approval, and graduates apply to join."
         image="/images/projects-hero.jpg"
       />
 
