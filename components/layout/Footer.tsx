@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="cl-footer-newsletter-inner">
           <div>
             <h4>Stay in the Loop</h4>
-            <p>Get CAIRLab&apos;s research news and event announcements in your inbox.</p>
+            <p>Get CAIRLab&apos;s up to date research news and event announcements in your inbox.</p>
           </div>
           <NewsletterSignup />
         </div>
