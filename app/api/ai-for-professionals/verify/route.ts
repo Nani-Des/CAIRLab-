@@ -67,11 +67,13 @@ export async function POST(request: Request) {
               html: `<p>Dear ${escapeHtml(result.nominee.fullName || 'participant')},</p>
                 <p>Your nomination by <strong>${escapeHtml(result.partner)}</strong> for the ${PROGRAMME_NAME} programme
                 is confirmed${result.nominee.track ? ` (${escapeHtml(result.nominee.track)})` : ''}.</p>
-                <p><strong>You're not registered yet.</strong> Please complete these steps to finish:</p>
+                <p><strong>You're not registered yet.</strong> To complete your registration:</p>
                 <ol>
-                  <li>Complete the <a href="${EMPLOYEES_SURVEY_URL}">Employees Survey</a>.</li>
-                  <li>Return to the registration page and confirm your details. If you closed it, choose
-                  "Partner organisation staff", select ${escapeHtml(result.partner)} and enter this email address.</li>
+                  <li><strong>Check your nomination again</strong> — open the registration page (button below), choose
+                  "Partner organisation staff", select ${escapeHtml(result.partner)} and enter this email address
+                  (${escapeHtml(result.nominee.email)}).</li>
+                  <li><strong>Take the <a href="${EMPLOYEES_SURVEY_URL}">Employees Survey</a></strong>.</li>
+                  <li><strong>Fill in your registration details</strong> and submit to finish your registration.</li>
                 </ol>
                 ${emailButton(`${SITE_URL}${PROGRAMME_PATH}?role=partner`, 'Finish my registration →')}
                 <p style="color:#64748B;font-size:13px">You'll get a "You're registered" email once you've finished.</p>`,

@@ -90,9 +90,14 @@ export async function POST(request: Request) {
           html: `<p>Dear ${escapeHtml(fullName)},</p>
             <p><strong>${escapeHtml(partner.name)}</strong> has nominated you for the ${PROGRAMME_NAME} programme
             (${escapeHtml(track)}) — 160 hours of free, practical AI training.</p>
-            <p>Please complete your registration: choose <strong>"Partner organisation staff"</strong>, select
-            ${escapeHtml(partner.name)} and use this email address (${escapeHtml(email)}).</p>
-            ${emailButton(`${SITE_URL}${PROGRAMME_PATH}?role=partner`, 'Register now →')}`,
+            <p>To register, start by checking your nomination, then continue with the next steps:</p>
+            <ol>
+              <li><strong>Check your nomination</strong> — on the registration page choose <strong>"Partner organisation staff"</strong>,
+              select ${escapeHtml(partner.name)} and enter this email address (${escapeHtml(email)}).</li>
+              <li><strong>Take the short Employees Survey</strong> — the link appears once your nomination is confirmed.</li>
+              <li><strong>Fill in your registration details</strong> and submit.</li>
+            </ol>
+            ${emailButton(`${SITE_URL}${PROGRAMME_PATH}?role=partner`, 'Check my nomination →')}`,
         }).catch((err) => console.error('AI for Professionals: nominee invitation email failed:', err));
       }
     } else {

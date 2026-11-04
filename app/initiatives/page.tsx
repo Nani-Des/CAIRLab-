@@ -18,13 +18,11 @@ import { urlFor } from '@/sanity/lib/image';
 import Link from 'next/link';
 import PageHero from '@/components/layout/PageHero';
 import { buildOpenGraph, buildTwitter, DEFAULT_OG_IMAGE } from '@/lib/seo';
-import { EMPLOYEES_SURVEY_URL, EMPLOYERS_SURVEY_URL, NOMINATION_FORM_URL } from '@/lib/aiForProfessionals';
 import { getAiProSettings } from '@/lib/aiProSettings';
 
 export const revalidate = 60;
 
-// Ongoing programmes shown under "Initiatives". Links come from the
-// programme's own links dashboard (https://forms.gle/8rRT812hbqNjB78s7).
+// Ongoing programmes shown under "Initiatives".
 const INITIATIVES = [
   {
     id: 'ai-for-professionals',
@@ -55,11 +53,6 @@ const INITIATIVES = [
         name: 'AI for Digital Marketing & E-commerce',
         desc: 'Use AI to reach more customers online — create ads and social media posts, understand your audience, and grow your online sales.',
       },
-    ],
-    links: [
-      { label: 'Employers Survey', desc: 'For organisations: tell us your AI skills needs.', icon: 'fa-building', href: EMPLOYERS_SURVEY_URL },
-      { label: 'Employees Survey', desc: 'For staff interested in the training.', icon: 'fa-user-graduate', href: EMPLOYEES_SURVEY_URL },
-      { label: 'Nomination Form', desc: 'Employers: nominate staff for the programme.', icon: 'fa-user-plus', href: NOMINATION_FORM_URL },
     ],
   },
 ];
@@ -212,17 +205,6 @@ export default async function InitiativesPage() {
                     </summary>
                     <p>{t.desc}</p>
                   </details>
-                ))}
-              </div>
-              <div className="cl-initiative-links">
-                {item.links.map((l) => (
-                  <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="cl-initiative-link">
-                    <span className="cl-initiative-link-icon"><i className={`fa-solid ${l.icon}`} aria-hidden="true"></i></span>
-                    <span className="cl-initiative-link-text">
-                      <strong>{l.label} →</strong>
-                      <span>{l.desc}</span>
-                    </span>
-                  </a>
                 ))}
               </div>
             </article>

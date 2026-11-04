@@ -1571,20 +1571,6 @@ a { color: inherit; }
   display: block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--blue-primary);
   text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;
 }
-.cl-initiative-links { display: grid; grid-template-columns: 1fr; gap: 14px; }
-@media (min-width: 760px) { .cl-initiative-links { grid-template-columns: repeat(3, 1fr); } }
-.cl-initiative-link {
-  display: flex; align-items: flex-start; gap: 14px; padding: 18px; border-radius: 12px; text-decoration: none;
-  border: 1.5px solid var(--line); background: var(--white); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-.cl-initiative-link:hover { border-color: var(--blue-primary); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(29, 78, 216, 0.12); }
-.cl-initiative-link-icon {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 18px;
-}
-.cl-initiative-link-text { display: grid; gap: 4px; }
-.cl-initiative-link-text strong { color: var(--blue-primary); font-size: 16px; }
-.cl-initiative-link-text span { color: var(--text-soft); font-size: 14px; line-height: 1.45; }
 @media (max-width: 640px) { .cl-initiative { padding: 24px 20px; } .cl-initiative h3 { font-size: 24px; } }
 
 /* AI for Professionals registration (app/initiatives/ai-for-professionals) */
