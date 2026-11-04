@@ -1,337 +1,384 @@
 'use client';
 
 // components/ai-for-professionals/RegistrationFlow.tsx
-// Registration for the KNUST–GIZ AI for Professionals programme:
-//  1. Visitor picks Employer, Employee, or Graduate.
-//  2. Employer fills in the organisation / labour-market survey -> done.
-//  3. Employee first completes the Employees Survey (KoboToolbox, opens in
-//     a new tab) and confirms it, which unlocks their details form; then a
-//     pop-up asks for their employer's / line manager's email before
-//     submitting -> "pending approval" until the employer clicks the link.
-// Kobo can't tell us who completed the survey, so the confirmation is
-// self-declared — staff can cross-check emails against the Kobo export.
-//  4. Graduate fills in an application -> done (no
-//     employer approval needed).
+// Registration for the KNUST–GIZ AI for Professionals programme. Visitors pick:
+//  1. Partner organisation staff — type/select their company from the partner
+//     list and enter their email; it must match a nomination on that partner
+//     (app/api/ai-for-professionals/verify). Only then do they get the
+//     Employees Survey step and the (pre-filled) details form. The employer's
+//     nomination is their approval, so there's no separate approval email.
+//  2. Partner organisation manager — picks their company and email; if it's
+//     on the partner's record we email a secure link to view/add nominees
+//     (app/api/ai-for-professionals/manager-link, .../manage).
+//  3. Not a partner yet — shown the Train-2, Place-2 offer, the partnership
+//     proposal PDF and the Partnership Commitment & Nomination Form.
+//  4. Graduate — application form with transcript + CV uploads.
+// Kobo can't tell us who completed the survey, so that step is self-declared.
 // Submits to app/api/ai-for-professionals/register/route.ts.
 
 import { useState, type FormEvent } from 'react';
 import {
-  COMPANY_SIZES,
+  DOCUMENT_EXTENSIONS,
   EMAIL_PATTERN,
   EMPLOYEES_SURVEY_URL,
   GENDERS,
-  NOMINATION_FORM_URL,
+  MAX_DOCUMENT_BYTES,
+  MOTIVATION_MAX_WORDS,
+  countWords,
+  PARTNERSHIP_FORM_URL,
+  PARTNERSHIP_PROPOSAL_PDF,
+  PROGRAMME_CONTACT,
   QUALIFICATIONS,
   STUDY_STATUSES,
   TRACKS,
 } from '@/lib/aiForProfessionals';
 
-type Role = 'employer' | 'employee' | 'graduate';
+export type Role = 'partner' | 'manager' | 'nonPartner' | 'graduate';
 type Status = 'idle' | 'sending' | 'error';
-type Done = { role: Role; employerEmail?: string } | null;
+type Nominee = { fullName: string; email: string; jobTitle: string; track: string; hub: string };
+type Verified = { partner: string; nominee: Nominee; emailed: boolean };
 
-export default function RegistrationFlow({ initialRole }: { initialRole?: Role }) {
+export default function RegistrationFlow({ initialRole, partners }: { initialRole?: Role; partners: string[] }) {
   const [role, setRole] = useState<Role | null>(initialRole ?? null);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [done, setDone] = useState<Done>(null);
+  const [done, setDone] = useState<{ role: Role; partner?: string } | null>(null);
+
+  // Partner staff
+  const [company, setCompany] = useState('');
+  const [workEmail, setWorkEmail] = useState('');
+  const [verified, setVerified] = useState<Verified | null>(null);
   const [surveyOpened, setSurveyOpened] = useState(false);
   const [surveyDone, setSurveyDone] = useState(false);
+  const [linkSentTo, setLinkSentTo] = useState<string | null>(null);
 
-  // Employee details are held here while the employer-email pop-up is open.
-  const [pendingEmployee, setPendingEmployee] = useState<Record<string, string> | null>(null);
-  const [employerEmail, setEmployerEmail] = useState('');
-  const [modalError, setModalError] = useState('');
+  function choose(r: Role) {
+    setRole(r);
+    setErrorMessage('');
+    setStatus('idle');
+  }
 
-  async function submit(payload: Record<string, unknown>) {
+  async function post(url: string, body: BodyInit, json = true) {
     setStatus('sending');
     setErrorMessage('');
-    setModalError('');
     try {
-      const res = await fetch('/api/ai-for-professionals/register', {
+      const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: json ? { 'Content-Type': 'application/json' } : undefined,
+        body,
       });
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
         setStatus('error');
-        return result.error || 'Something went wrong. Please try again.';
+        setErrorMessage(result.error || 'Something went wrong. Please try again.');
+        return null;
       }
       setStatus('idle');
-      return null;
+      return result;
     } catch {
       setStatus('error');
-      return 'Network error — please check your connection and try again.';
+      setErrorMessage('Network error — please check your connection and try again.');
+      return null;
     }
   }
 
-  async function handleEmployer(e: FormEvent<HTMLFormElement>) {
+  async function handleVerify(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const error = await submit({
-      role: 'employer',
-      organisation: data.get('organisation'),
-      fullName: data.get('fullName'),
-      jobTitle: data.get('jobTitle'),
-      email: data.get('email'),
-      phone: data.get('phone'),
-      sector: data.get('sector'),
-      companySize: data.get('companySize'),
-      skillsNeeded: data.getAll('skillsNeeded'),
-      staffToNominate: data.get('staffToNominate'),
-      skillsGaps: data.get('skillsGaps'),
-      consent: data.get('consent'),
-      website: data.get('website'),
-    });
-    if (error) setErrorMessage(error);
-    else setDone({ role: 'employer' });
+    if (!EMAIL_PATTERN.test(workEmail.trim())) {
+      setStatus('error');
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+    const result = await post('/api/ai-for-professionals/verify', JSON.stringify({ company, email: workEmail }));
+    if (result) setVerified({ partner: result.partner, nominee: result.nominee, emailed: Boolean(result.emailed) });
+  }
+
+  async function handleManagerLink(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const result = await post('/api/ai-for-professionals/manager-link', JSON.stringify({ company, email: workEmail }));
+    if (result) setLinkSentTo(workEmail.trim());
+  }
+
+  async function handleStaffDetails(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!verified) return;
+    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const result = await post(
+      '/api/ai-for-professionals/register',
+      JSON.stringify({ ...data, role: 'employee', company: verified.partner, email: verified.nominee.email, surveyCompleted: surveyDone })
+    );
+    if (result) setDone({ role: 'partner', partner: verified.partner });
   }
 
   async function handleGraduate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const error = await submit({ role: 'graduate', ...Object.fromEntries(Array.from(data.entries()).map(([k, v]) => [k, String(v)])) });
-    if (error) setErrorMessage(error);
-    else setDone({ role: 'graduate' });
+    for (const [key, label] of [['transcript', 'transcript'], ['cv', 'CV']] as const) {
+      const file = data.get(key);
+      if (file instanceof File && file.size > MAX_DOCUMENT_BYTES) {
+        setStatus('error');
+        setErrorMessage(`Your ${label} is too large — please keep each file under 4 MB.`);
+        return;
+      }
+    }
+    data.set('role', 'graduate');
+    const result = await post('/api/ai-for-professionals/register', data, false);
+    if (result) setDone({ role: 'graduate' });
   }
 
-  function handleEmployeeDetails(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    setPendingEmployee(Object.fromEntries(Array.from(data.entries()).map(([k, v]) => [k, String(v)])));
-    setModalError('');
-  }
-
-  async function handleEmployerEmail(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!pendingEmployee) return;
-    const value = employerEmail.trim();
-    if (!EMAIL_PATTERN.test(value)) {
-      setModalError('Please enter a valid email address.');
-      return;
-    }
-    if (value.toLowerCase() === (pendingEmployee.email || '').trim().toLowerCase()) {
-      setModalError("This must be your employer's email, not your own.");
-      return;
-    }
-    const error = await submit({ role: 'employee', ...pendingEmployee, employerEmail: value, surveyCompleted: surveyDone });
-    if (error) {
-      setModalError(error);
-      return;
-    }
-    setPendingEmployee(null);
-    setDone({ role: 'employee', employerEmail: value });
-  }
-
-  if (done?.role === 'graduate') {
+  // ---------------- finished screens ----------------
+  if (done) {
     return (
       <div className="cl-form-success">
         <div className="cl-form-success-icon">✓</div>
-        <h3>Application received!</h3>
-        <p>
-          Thank you for applying to the AI for Professionals programme. We&apos;ve sent a confirmation to your email
-          and will contact you about the next steps in the selection process.
-        </p>
+        {done.role === 'graduate' ? (
+          <>
+            <h3>Application received!</h3>
+            <p>
+              Thank you for applying. We&apos;ve received your application, transcript and CV, and sent a confirmation to
+              your email. We&apos;ll contact you about the next steps in the selection process.
+            </p>
+          </>
+        ) : (
+          <>
+            <h3>You&apos;re registered!</h3>
+            <p>
+              Thank you — you&apos;re registered for the programme as a nominee of <strong>{done.partner}</strong>.
+              We&apos;ve sent a confirmation to your email and will be in touch with your training schedule.
+            </p>
+          </>
+        )}
         <SpamNotice>
-          Don&apos;t see our confirmation email? Check your <strong>spam or junk folder</strong> and mark it as
-          &ldquo;Not spam&rdquo; so you don&apos;t miss our updates.
+          Don&apos;t see our email? Check your <strong>spam or junk folder</strong> and mark it as &ldquo;Not spam&rdquo; so
+          you don&apos;t miss our updates.
         </SpamNotice>
       </div>
     );
   }
 
-  if (done) {
-    return done.role === 'employer' ? (
-      <div className="cl-form-success">
-        <div className="cl-form-success-icon">✓</div>
-        <h3>Thank you for registering!</h3>
-        <p>
-          We&apos;ve received your organisation&apos;s details and sent a confirmation to your email.
-        </p>
-        <div className="cl-aipro-next-step">
-          <strong><i className="fa-solid fa-user-plus" aria-hidden="true"></i> One more step to complete your registration</strong>
-          <p>Use the Nomination Form to nominate the employees you&apos;d like to put forward for the training.</p>
-          <a href={NOMINATION_FORM_URL} target="_blank" rel="noopener noreferrer" className="cl-btn-blue">
-            Open the Nomination Form ↗
-          </a>
-        </div>
-        <p className="cl-form-hint">
-          When your staff register on this site, they&apos;ll list your email address and you&apos;ll receive a link to
-          approve their participation.
-        </p>
-        <SpamNotice>
-          Don&apos;t see our confirmation email? Check your <strong>spam or junk folder</strong> — approval requests
-          from your staff will come from the same address, so mark it as &ldquo;Not spam&rdquo;.
-        </SpamNotice>
-      </div>
-    ) : (
-      <div className="cl-form-success">
-        <div className="cl-aipro-pending-icon"><i className="fa-solid fa-hourglass-half" aria-hidden="true"></i></div>
-        <h3>Registration received — pending approval</h3>
-        <p>
-          We&apos;ve emailed <strong>{done.employerEmail}</strong> to approve your participation. Your application will
-          remain <strong>pending</strong> until your employer approves it, and we&apos;ll email you as soon as they do.
-        </p>
-        <SpamNotice>
-          Our emails sometimes land in <strong>spam or junk</strong>. Check yours for the confirmation and approval
-          emails — and if you haven&apos;t been approved yet, ask your employer to check their spam folder for our
-          request.
-        </SpamNotice>
-      </div>
-    );
-  }
+  const error = status === 'error' && errorMessage && <p className="cl-form-error">{errorMessage}</p>;
 
   return (
     <div className="cl-aipro">
       <h2 className="cl-aipro-step-title">I am registering as…</h2>
       <div className="cl-aipro-roles" role="radiogroup" aria-label="Registering as">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={role === 'employer'}
-          className={`cl-aipro-role${role === 'employer' ? ' active' : ''}`}
-          onClick={() => { setRole('employer'); setErrorMessage(''); }}
-        >
-          <span className="cl-aipro-role-icon"><i className="fa-solid fa-building" aria-hidden="true"></i></span>
-          <span className="cl-aipro-role-title">Employer / Manager</span>
-          <span className="cl-aipro-role-desc">Register your organisation and tell us about your AI skills needs.</span>
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={role === 'employee'}
-          className={`cl-aipro-role${role === 'employee' ? ' active' : ''}`}
-          onClick={() => { setRole('employee'); setErrorMessage(''); }}
-        >
-          <span className="cl-aipro-role-icon"><i className="fa-solid fa-id-badge" aria-hidden="true"></i></span>
-          <span className="cl-aipro-role-title">Employee / Staff member</span>
-          <span className="cl-aipro-role-desc">Register for training. Your employer will be asked to approve.</span>
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={role === 'graduate'}
-          className={`cl-aipro-role${role === 'graduate' ? ' active' : ''}`}
-          onClick={() => { setRole('graduate'); setErrorMessage(''); }}
-        >
-          <span className="cl-aipro-role-icon"><i className="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
-          <span className="cl-aipro-role-title">Graduate</span>
-          <span className="cl-aipro-role-desc">Completed your studies? Apply to join the training.</span>
-        </button>
+        <RoleCard active={role === 'partner'} onClick={() => choose('partner')} icon="fa-handshake" title="Partner organisation staff">
+          Your organisation is a programme partner and has nominated you.
+        </RoleCard>
+        <RoleCard active={role === 'manager'} onClick={() => choose('manager')} icon="fa-user-tie" title="Partner organisation manager">
+          Nominate your staff or check who you&apos;ve nominated.
+        </RoleCard>
+        <RoleCard active={role === 'nonPartner'} onClick={() => choose('nonPartner')} icon="fa-building" title="Not a partner yet">
+          Your organisation isn&apos;t a partner but would like to join.
+        </RoleCard>
+        <RoleCard active={role === 'graduate'} onClick={() => choose('graduate')} icon="fa-graduation-cap" title="Graduate">
+          Completed your studies? Apply with your transcript and CV.
+        </RoleCard>
       </div>
 
-      {role === 'employer' && (
-        <form className="cl-form" onSubmit={handleEmployer}>
-          <h3 className="cl-form-section-title">Organisation details</h3>
-          <HoneypotField />
-          <div className="cl-form-row">
-            <Field id="organisation" label="Organisation name *" required />
-            <Field id="sector" label="Sector / industry" placeholder="e.g. Banking, Agriculture" />
-          </div>
-          <div className="cl-form-row">
-            <Field id="fullName" label="Contact person full name *" required />
-            <Field id="jobTitle" label="Job title" />
-          </div>
-          <div className="cl-form-row">
-            <Field id="email" label="Contact email *" type="email" required />
-            <Field id="phone" label="Phone number" type="tel" />
-          </div>
-          <div className="cl-form-row">
-            <div>
-              <label htmlFor="companySize">Number of employees</label>
-              <select id="companySize" name="companySize" defaultValue="">
-                <option value="">Select</option>
-                {COMPANY_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <Field id="staffToNominate" label="How many staff would you like to nominate?" type="number" min="0" />
-          </div>
-          <fieldset className="cl-aipro-fieldset">
-            <legend>Which AI skills does your organisation need most?</legend>
-            {TRACKS.map((t) => (
-              <div className="cl-form-checkbox-row" key={t}>
-                <input id={`skill-${t}`} name="skillsNeeded" type="checkbox" value={t} />
-                <label htmlFor={`skill-${t}`}>{t}</label>
-              </div>
-            ))}
-          </fieldset>
+      {/* ---------------- partner staff ---------------- */}
+      {role === 'partner' && !verified && (
+        <form className="cl-form" onSubmit={handleVerify}>
+          <h3 className="cl-form-section-title">Step 1: Confirm your nomination</h3>
+          <p className="cl-aipro-lead">
+            Only staff nominated by a partner organisation can register. Select your company and enter the email address
+            your employer nominated you with.
+          </p>
           <div>
-            <label htmlFor="skillsGaps">What skills gaps do you see in your workforce?</label>
-            <textarea id="skillsGaps" name="skillsGaps" placeholder="Tell us briefly…" />
+            <label htmlFor="company">Your company *</label>
+            <input
+              id="company"
+              list="aipro-partners"
+              autoComplete="organization"
+              placeholder="Start typing your company's name…"
+              required
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+            />
+            <datalist id="aipro-partners">
+              {partners.map((p) => <option key={p} value={p} />)}
+            </datalist>
           </div>
-          <ConsentRow />
-          {status === 'error' && errorMessage && <p className="cl-form-error">{errorMessage}</p>}
+          <div>
+            <label htmlFor="workEmail">Your email address *</label>
+            <input
+              id="workEmail"
+              type="email"
+              required
+              placeholder="the email your employer nominated"
+              value={workEmail}
+              onChange={(e) => setWorkEmail(e.target.value)}
+            />
+          </div>
+          {error}
           <button type="submit" className="cl-btn-blue" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Submitting…' : 'Submit Registration →'}
+            {status === 'sending' ? 'Checking…' : 'Check my nomination →'}
+          </button>
+          <p className="cl-form-hint">
+            Company not in the list? <button type="button" className="cl-aipro-linkbtn" onClick={() => choose('nonPartner')}>See how it can become a partner</button>.
+          </p>
+        </form>
+      )}
+
+      {role === 'partner' && verified && (
+        <>
+          <div className="cl-aipro-verified">
+            <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <div>
+              <strong>Nomination confirmed</strong>
+              <span>{verified.nominee.fullName || verified.nominee.email} · {verified.partner}</span>
+            </div>
+          </div>
+          <div className="cl-aipro-next-steps">
+            <strong><i className="fa-solid fa-list-check" aria-hidden="true"></i> You&apos;re not registered yet — please finish these steps:</strong>
+            <ol>
+              <li><b>Step 2:</b> complete the Employees Survey below.</li>
+              <li><b>Step 3:</b> confirm your details and click &ldquo;Complete Registration&rdquo;.</li>
+            </ol>
+            <span>
+              {verified.emailed
+                ? <>We&apos;ve also emailed these steps to <strong>{verified.nominee.email}</strong> (check your spam folder too). </>
+                : null}
+              You&apos;ll get a &ldquo;You&apos;re registered&rdquo; email once you&apos;ve finished.
+            </span>
+          </div>
+
+          <div className={`cl-aipro-survey-step${surveyDone ? ' done' : ''}`}>
+            <div className="cl-aipro-step-badge">{surveyDone ? <i className="fa-solid fa-check" aria-hidden="true"></i> : '2'}</div>
+            <div className="cl-aipro-survey-body">
+              <h3>Step 2: Complete the Employees Survey</h3>
+              <p>Please fill in the programme&apos;s Employees Survey. It opens in a new tab — come back here when you&apos;ve submitted it.</p>
+              <a
+                href={EMPLOYEES_SURVEY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={surveyOpened ? 'cl-btn-white' : 'cl-btn-blue'}
+                onClick={() => setSurveyOpened(true)}
+              >
+                {surveyOpened ? 'Open the survey again ↗' : 'Open the Employees Survey ↗'}
+              </a>
+              <div className="cl-form-checkbox-row" style={{ marginTop: 16 }}>
+                <input id="surveyDone" type="checkbox" checked={surveyDone} disabled={!surveyOpened && !surveyDone} onChange={(e) => setSurveyDone(e.target.checked)} />
+                <label htmlFor="surveyDone">
+                  I have completed and submitted the Employees Survey
+                  {!surveyOpened && !surveyDone && <span className="cl-form-hint">Open the survey first to tick this box.</span>}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {surveyDone && (
+            <form className="cl-form" onSubmit={handleStaffDetails}>
+              <h3 className="cl-form-section-title">Step 3: Confirm your details</h3>
+              <HoneypotField />
+              <div className="cl-form-row">
+                <Field id="fullName" label="Full name *" required defaultValue={verified.nominee.fullName} />
+                <div>
+                  <label htmlFor="emailShown">Email address</label>
+                  <input id="emailShown" value={verified.nominee.email} readOnly />
+                </div>
+              </div>
+              <div className="cl-form-row">
+                <Field id="phone" label="Phone number" type="tel" />
+                <Field id="jobTitle" label="Job title" defaultValue={verified.nominee.jobTitle} />
+              </div>
+              <Select id="track" label="Track *" options={TRACKS} required defaultValue={verified.nominee.track} placeholder="Select a track" />
+              <ConsentRow />
+              {error}
+              <button type="submit" className="cl-btn-blue" disabled={status === 'sending'}>
+                {status === 'sending' ? 'Submitting…' : 'Complete Registration →'}
+              </button>
+            </form>
+          )}
+        </>
+      )}
+
+      {/* ---------------- partner managers ---------------- */}
+      {role === 'manager' && !linkSentTo && (
+        <form className="cl-form" onSubmit={handleManagerLink}>
+          <h3 className="cl-form-section-title">Manage your organisation&apos;s nominations</h3>
+          <p className="cl-aipro-lead">
+            Select your organisation and enter the email address it gave the programme. We&apos;ll email you a secure link to view
+            your nominated staff and nominate more people.
+          </p>
+          <div>
+            <label htmlFor="company">Your organisation *</label>
+            <input
+              id="company"
+              list="aipro-partners"
+              autoComplete="organization"
+              placeholder="Start typing your organisation's name…"
+              required
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+            />
+            <datalist id="aipro-partners">
+              {partners.map((p) => <option key={p} value={p} />)}
+            </datalist>
+          </div>
+          <div>
+            <label htmlFor="workEmail">Your email address *</label>
+            <input id="workEmail" type="email" required placeholder="you@your-organisation.com" value={workEmail} onChange={(e) => setWorkEmail(e.target.value)} />
+          </div>
+          {error}
+          <button type="submit" className="cl-btn-blue" disabled={status === 'sending'}>
+            {status === 'sending' ? 'Sending…' : 'Email me a secure link →'}
           </button>
         </form>
       )}
 
-      {role === 'employee' && (
-        <div className={`cl-aipro-survey-step${surveyDone ? ' done' : ''}`}>
-          <div className="cl-aipro-step-badge">{surveyDone ? <i className="fa-solid fa-check" aria-hidden="true"></i> : '1'}</div>
-          <div className="cl-aipro-survey-body">
-            <h3>Step 1: Complete the Employees Survey</h3>
-            <p>
-              Before requesting your employer&apos;s approval, please fill in the programme&apos;s Employees Survey.
-              It opens in a new tab — come back to this page when you&apos;ve submitted it.
-            </p>
-            <a
-              href={EMPLOYEES_SURVEY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={surveyOpened ? 'cl-btn-white' : 'cl-btn-blue'}
-              onClick={() => setSurveyOpened(true)}
-            >
-              {surveyOpened ? 'Open the survey again ↗' : 'Open the Employees Survey ↗'}
-            </a>
-            <div className="cl-form-checkbox-row" style={{ marginTop: 16 }}>
-              <input
-                id="surveyDone"
-                type="checkbox"
-                checked={surveyDone}
-                disabled={!surveyOpened && !surveyDone}
-                onChange={(e) => setSurveyDone(e.target.checked)}
-              />
-              <label htmlFor="surveyDone">
-                I have completed and submitted the Employees Survey
-                {!surveyOpened && !surveyDone && <span className="cl-form-hint">Open the survey first to tick this box.</span>}
-              </label>
-            </div>
-          </div>
+      {role === 'manager' && linkSentTo && (
+        <div className="cl-form-success">
+          <div className="cl-form-success-icon"><i className="fa-solid fa-envelope" aria-hidden="true"></i></div>
+          <h3>Check your email</h3>
+          <p>
+            We&apos;ve sent a secure link to <strong>{linkSentTo}</strong>. Open it to view your nominated staff and nominate more
+            people. The link works for 24 hours.
+          </p>
+          <SpamNotice>Can&apos;t find it? Check your <strong>spam or junk folder</strong>.</SpamNotice>
+          <button type="button" className="cl-aipro-linkbtn" onClick={() => setLinkSentTo(null)}>Use a different email</button>
         </div>
       )}
 
-      {role === 'employee' && surveyDone && (
-        <form className="cl-form" onSubmit={handleEmployeeDetails}>
-          <h3 className="cl-form-section-title">Step 2: Your details</h3>
-          <HoneypotField />
-          <div className="cl-form-row">
-            <Field id="fullName" label="Full name *" required />
-            <Field id="email" label="Email address *" type="email" required />
-          </div>
-          <div className="cl-form-row">
-            <Field id="phone" label="Phone number" type="tel" />
-            <Field id="jobTitle" label="Job title" />
-          </div>
-          <div className="cl-form-row">
-            <Field id="organisation" label="Organisation / company *" required />
+      {/* ---------------- not a partner ---------------- */}
+      {role === 'nonPartner' && (
+        <div className="cl-aipro-partner-offer">
+          <h3>Become a programme partner — &ldquo;Train-2, Place-2&rdquo;</h3>
+          <p>
+            Registration for staff is open to partner organisations. Partnering is free and non-binding:
+          </p>
+          <div className="cl-aipro-t2p2">
             <div>
-              <label htmlFor="track">Which track interests you? *</label>
-              <select id="track" name="track" required defaultValue="">
-                <option value="" disabled>Select a track</option>
-                {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <strong>Train 2</strong>
+              <span>Nominate two of your staff for free, 160-hour practical AI training.</span>
+            </div>
+            <div>
+              <strong>Place 2</strong>
+              <span>Offer two placement slots (internship, project or hire) to programme graduates.</span>
             </div>
           </div>
-          <ConsentRow />
-          <button type="submit" className="cl-btn-blue">Continue →</button>
-        </form>
+          <p>
+            Partners also help shape the curriculum, can submit real business challenges for capstone projects, and are
+            recognised across KNUST, GIZ and Ministry platforms.
+          </p>
+          <div className="cl-aipro-offer-actions">
+            <a href={PARTNERSHIP_PROPOSAL_PDF} target="_blank" rel="noopener noreferrer" className="cl-btn-white">
+              <i className="fa-solid fa-file-pdf" aria-hidden="true"></i>&nbsp; Read the Partnership Proposal (PDF)
+            </a>
+            <a href={PARTNERSHIP_FORM_URL} target="_blank" rel="noopener noreferrer" className="cl-btn-blue">
+              Partnership Commitment &amp; Nomination Form ↗
+            </a>
+          </div>
+          <p className="cl-form-hint">
+            Questions? Contact {PROGRAMME_CONTACT.name} at <a href={`mailto:${PROGRAMME_CONTACT.email}`}>{PROGRAMME_CONTACT.email}</a> or {PROGRAMME_CONTACT.phone}.
+            Once your organisation is listed as a partner and has nominated you, come back and choose &ldquo;Partner organisation staff&rdquo;.
+          </p>
+        </div>
       )}
 
+      {/* ---------------- graduates ---------------- */}
       {role === 'graduate' && (
-        <form className="cl-form" onSubmit={handleGraduate}>
+        <form className="cl-form" onSubmit={handleGraduate} encType="multipart/form-data">
           <h3 className="cl-form-section-title">Your application</h3>
           <HoneypotField />
           <div className="cl-form-row">
@@ -355,67 +402,29 @@ export default function RegistrationFlow({ initialRole }: { initialRole?: Role }
             <Field id="location" label="Town / region" placeholder="e.g. Kumasi, Ashanti" />
           </div>
           <Select id="track" label="Which track interests you? *" options={TRACKS} required placeholder="Select a track" />
-          <div>
-            <label htmlFor="motivation">Why do you want to join this programme? *</label>
-            <textarea id="motivation" name="motivation" required placeholder="A few sentences about your interest in AI and what you hope to achieve…" />
+          <MotivationField />
+          <div className="cl-form-row">
+            <FileField id="transcript" label="Academic transcript *" />
+            <FileField id="cv" label="CV / résumé *" />
           </div>
           <ConsentRow />
-          {status === 'error' && errorMessage && <p className="cl-form-error">{errorMessage}</p>}
+          {error}
           <button type="submit" className="cl-btn-blue" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Submitting…' : 'Submit Application →'}
+            {status === 'sending' ? 'Uploading…' : 'Submit Application →'}
           </button>
         </form>
       )}
-
-      {pendingEmployee && (
-        <div className="cl-aipro-modal-backdrop" role="presentation" onClick={() => status !== 'sending' && setPendingEmployee(null)}>
-          <div
-            className="cl-aipro-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="aipro-modal-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="cl-aipro-modal-close"
-              aria-label="Close"
-              onClick={() => setPendingEmployee(null)}
-              disabled={status === 'sending'}
-            >
-              ✕
-            </button>
-            <div className="cl-aipro-modal-icon"><i className="fa-solid fa-user-check" aria-hidden="true"></i></div>
-            <h3 id="aipro-modal-title">Your employer&apos;s approval</h3>
-            <p>
-              Enter the email address of your <strong>employer or line manager</strong>. We&apos;ll send them a link to
-              approve your participation.
-            </p>
-            <form className="cl-aipro-modal-form" onSubmit={handleEmployerEmail}>
-              <label htmlFor="employerEmail">Employer / line manager email *</label>
-              <input
-                id="employerEmail"
-                type="email"
-                required
-                autoFocus
-                placeholder="manager@company.com"
-                value={employerEmail}
-                onChange={(e) => setEmployerEmail(e.target.value)}
-              />
-              <p className="cl-aipro-modal-notice">
-                <i className="fa-solid fa-circle-info" aria-hidden="true"></i> Your application will remain{' '}
-                <strong>pending</strong> until your employer approves it. Ask them to check their spam folder if our
-                email doesn&apos;t arrive.
-              </p>
-              {modalError && <p className="cl-form-error">{modalError}</p>}
-              <button type="submit" className="cl-btn-blue" disabled={status === 'sending'}>
-                {status === 'sending' ? 'Submitting…' : 'Submit Registration →'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
+
+function RoleCard({ active, onClick, icon, title, children }: { active: boolean; onClick: () => void; icon: string; title: string; children: React.ReactNode }) {
+  return (
+    <button type="button" role="radio" aria-checked={active} className={`cl-aipro-role${active ? ' active' : ''}`} onClick={onClick}>
+      <span className="cl-aipro-role-icon"><i className={`fa-solid ${icon}`} aria-hidden="true"></i></span>
+      <span className="cl-aipro-role-title">{title}</span>
+      <span className="cl-aipro-role-desc">{children}</span>
+    </button>
   );
 }
 
@@ -428,23 +437,78 @@ function Field({ id, label, type = 'text', ...rest }: { id: string; label: strin
   );
 }
 
+// "Why do you want to join?" with a live word count, capped at MOTIVATION_MAX_WORDS.
+// setCustomValidity blocks submitting while it's over the limit.
+function MotivationField() {
+  const [words, setWords] = useState(0);
+  const over = words > MOTIVATION_MAX_WORDS;
+  return (
+    <div>
+      <label htmlFor="motivation">Why do you want to join this programme? *</label>
+      <textarea
+        id="motivation"
+        name="motivation"
+        required
+        placeholder={`A few sentences about your interest in AI and what you hope to achieve (up to ${MOTIVATION_MAX_WORDS} words)…`}
+        onChange={(e) => {
+          const n = countWords(e.target.value);
+          setWords(n);
+          e.target.setCustomValidity(n > MOTIVATION_MAX_WORDS ? `Please keep this to ${MOTIVATION_MAX_WORDS} words or fewer.` : '');
+        }}
+      />
+      <span className={`cl-aipro-wordcount${over ? ' over' : ''}`}>
+        {words} / {MOTIVATION_MAX_WORDS} words{over ? ` — please remove ${words - MOTIVATION_MAX_WORDS}` : ''}
+      </span>
+    </div>
+  );
+}
+
+// Upload box with an icon instead of the browser's plain "Choose File" button.
+// The real input stays in the form (visually hidden) so "required" still works.
+function FileField({ id, label }: { id: string; label: string }) {
+  const [fileName, setFileName] = useState('');
+  return (
+    <div>
+      <span className="cl-aipro-upload-label">{label}</span>
+      <label htmlFor={id} className={`cl-aipro-upload${fileName ? ' has-file' : ''}`}>
+        <i className={`fa-solid ${fileName ? 'fa-file-circle-check' : 'fa-cloud-arrow-up'}`} aria-hidden="true"></i>
+        <span className="cl-aipro-upload-text">
+          <strong>{fileName || 'Click to upload'}</strong>
+          <small>{fileName ? 'Click to choose a different file' : 'PDF or Word, up to 4 MB'}</small>
+        </span>
+        <input
+          id={id}
+          name={id}
+          type="file"
+          required
+          accept={DOCUMENT_EXTENSIONS.join(',')}
+          className="cl-aipro-upload-input"
+          onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}
+        />
+      </label>
+    </div>
+  );
+}
+
 function Select({
   id,
   label,
   options,
   required,
   placeholder = 'Select',
+  defaultValue = '',
 }: {
   id: string;
   label: string;
   options: readonly string[];
   required?: boolean;
   placeholder?: string;
+  defaultValue?: string;
 }) {
   return (
     <div>
       <label htmlFor={id}>{label}</label>
-      <select id={id} name={id} required={required} defaultValue="">
+      <select id={id} name={id} required={required} defaultValue={options.includes(defaultValue) ? defaultValue : ''}>
         <option value="" disabled={required}>{placeholder}</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -465,9 +529,7 @@ function ConsentRow() {
   return (
     <div className="cl-form-checkbox-row">
       <input id="consent" name="consent" type="checkbox" required />
-      <label htmlFor="consent">
-        I agree to CAIRLab and GIZ processing these details for the purposes of this programme *
-      </label>
+      <label htmlFor="consent">I agree to CAIRLab and GIZ processing these details for the purposes of this programme *</label>
     </div>
   );
 }

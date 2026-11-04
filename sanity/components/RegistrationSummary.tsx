@@ -16,6 +16,9 @@ type Counts = {
   rejected: number;
   employers: number;
   graduates: number;
+  partners: number;
+  partnersWithNominees: number;
+  nominees: number;
   tracks: { track: string; count: number }[];
 };
 
@@ -26,6 +29,9 @@ const QUERY = `{
   "rejected": count(*[_type == "aiProRegistration" && status == "rejected"]),
   "employers": count(*[_type == "aiProRegistration" && role == "employer"]),
   "graduates": count(*[_type == "aiProRegistration" && role == "graduate"]),
+  "partners": count(*[_type == "aiProPartner" && !(_id in path("drafts.**"))]),
+  "partnersWithNominees": count(*[_type == "aiProPartner" && !(_id in path("drafts.**")) && count(nominees) > 0]),
+  "nominees": count(*[_type == "aiProPartner" && !(_id in path("drafts.**"))].nominees[]),
   "trackNames": array::unique(*[_type == "aiProRegistration" && role == "employee" && defined(track)].track),
   "employeeTracks": *[_type == "aiProRegistration" && role == "employee"].track
 }`;
@@ -40,7 +46,7 @@ const EMPLOYEE_COLUMNS: [string, string][] = [
   ['Organisation', 'organisation'],
   ['Job title', 'jobTitle'],
   ['Track', 'track'],
-  ['Employer / line manager email', 'employerEmail'],
+  ['Preferred hub', 'hub'],
   ['Said they completed the Employees Survey', 'surveyCompleted'],
   ['Agreed to data processing', 'consentGiven'],
   ['Submitted', 'submittedAt'],
@@ -59,6 +65,9 @@ const GRADUATE_COLUMNS: [string, string][] = [
   ['Town / region', 'location'],
   ['Track', 'track'],
   ['Why they want to join', 'motivation'],
+  ['Transcript file', 'transcriptFileName'],
+  ['CV file', 'cvFileName'],
+  ['Documents emailed to', 'documentsSentTo'],
   ['Agreed to data processing', 'consentGiven'],
   ['Submitted', 'submittedAt'],
 ];
@@ -75,6 +84,19 @@ const EMPLOYER_COLUMNS: [string, string][] = [
   ['Skills gaps', 'skillsGaps'],
   ['Agreed to data processing', 'consentGiven'],
   ['Submitted', 'submittedAt'],
+];
+
+const PARTNER_COLUMNS: [string, string][] = [
+  ['Organisation', 'organisation'],
+  ['Contact person', 'contactName'],
+  ['Contact email', 'contactEmail'],
+  ['Contact phone', 'contactPhone'],
+  ['Nominee', 'nomineeName'],
+  ['Nominee email', 'nomineeEmail'],
+  ['Nominee phone', 'nomineePhone'],
+  ['Track', 'nomineeTrack'],
+  ['Preferred hub', 'nomineeHub'],
+  ['Registered on the site', 'registered'],
 ];
 
 type ExportRole = 'employee' | 'employer' | 'graduate';
@@ -118,6 +140,40 @@ export default function RegistrationSummary() {
   const [counts, setCounts] = useState<Counts | null>(null);
   const [exporting, setExporting] = useState<ExportRole | null>(null);
 
+  // One row per nominated person, with their organisation and whether they've registered.
+  async function exportPartners() {
+    setExporting('employer');
+    try {
+      const data = await client.fetch<{
+        partners: { name?: string; contactName?: string; contactEmail?: string; contactPhone?: string; nominees?: Record<string, string>[] }[];
+        registered: (string | null)[];
+      }>(`{
+        "partners": *[_type == "aiProPartner" && !(_id in path("drafts.**"))] | order(name asc){ name, contactName, contactEmail, contactPhone, nominees },
+        "registered": *[_type == "aiProRegistration" && role == "employee"].email
+      }`);
+      const registered = new Set(data.registered.filter(Boolean).map((e) => (e as string).toLowerCase()));
+      const rows: Record<string, unknown>[] = [];
+      for (const p of data.partners) {
+        const base = { organisation: p.name, contactName: p.contactName, contactEmail: p.contactEmail, contactPhone: p.contactPhone };
+        if (!p.nominees?.length) rows.push({ ...base, nomineeName: '(no nominees yet)' });
+        for (const n of p.nominees || []) {
+          rows.push({
+            ...base,
+            nomineeName: n.fullName,
+            nomineeEmail: n.email,
+            nomineePhone: n.phone,
+            nomineeTrack: n.track,
+            nomineeHub: n.hub,
+            registered: registered.has((n.email || '').toLowerCase()),
+          });
+        }
+      }
+      downloadCsv(`ai-for-professionals-partners-${new Date().toISOString().slice(0, 10)}.csv`, PARTNER_COLUMNS, rows);
+    } finally {
+      setExporting(null);
+    }
+  }
+
   async function exportRole(role: ExportRole) {
     setExporting(role);
     try {
@@ -142,7 +198,7 @@ export default function RegistrationSummary() {
     load();
     // Re-count whenever a registration is created, approved, rejected or deleted.
     const sub = client
-      .listen('*[_type == "aiProRegistration"]', {}, { includeResult: false })
+      .listen('*[_type in ["aiProRegistration", "aiProPartner"]]', {}, { includeResult: false })
       .subscribe(() => setTimeout(load, 1000));
     return () => {
       cancelled = true;
@@ -173,20 +229,19 @@ export default function RegistrationSummary() {
         <Heading size={2}>AI for Professionals — Summary</Heading>
 
         <Stack gap={3}>
-          <Text weight="semibold">Employees</Text>
+          <Text weight="semibold">Partners &amp; nominated staff</Text>
           <Grid gridTemplateColumns={[1, 2, 4]} gap={3}>
-            {stat('Total registered', counts.employees, 'primary')}
-            {stat('Pending approval', counts.pending, 'caution')}
-            {stat('Approved', counts.approved, 'positive')}
-            {stat('Rejected', counts.rejected, 'critical')}
+            {stat('Partner organisations', counts.partners, 'default')}
+            {stat('Partners that have nominated', counts.partnersWithNominees, 'default')}
+            {stat('Staff nominated', counts.nominees, 'primary')}
+            {stat('Nominated staff registered', counts.employees, 'positive')}
           </Grid>
         </Stack>
 
         <Stack gap={3}>
-          <Text weight="semibold">Graduates &amp; employers</Text>
+          <Text weight="semibold">Graduates</Text>
           <Grid gridTemplateColumns={[1, 2, 4]} gap={3}>
             {stat('Graduate applications', counts.graduates, 'primary')}
-            {stat('Organisations registered', counts.employers, 'default')}
           </Grid>
         </Stack>
 
@@ -210,16 +265,16 @@ export default function RegistrationSummary() {
           <Text weight="semibold">Download all details (opens in Excel or Google Sheets)</Text>
           <Flex gap={3} wrap="wrap">
             <Button
-              text={exporting === 'employee' ? 'Preparing…' : `Download employees (${counts.employees})`}
+              text={exporting === 'employee' ? 'Preparing…' : `Download registered staff (${counts.employees})`}
               tone="primary"
               disabled={exporting !== null || counts.employees === 0}
               onClick={() => exportRole('employee')}
             />
             <Button
-              text={exporting === 'employer' ? 'Preparing…' : `Download employers (${counts.employers})`}
+              text={exporting === 'employer' ? 'Preparing…' : `Download partners & nominees (${counts.partners})`}
               mode="ghost"
-              disabled={exporting !== null || counts.employers === 0}
-              onClick={() => exportRole('employer')}
+              disabled={exporting !== null || counts.partners === 0}
+              onClick={exportPartners}
             />
             <Button
               text={exporting === 'graduate' ? 'Preparing…' : `Download graduates (${counts.graduates})`}
@@ -230,7 +285,7 @@ export default function RegistrationSummary() {
           </Flex>
         </Stack>
 
-        <Text size={1} muted>Updates automatically as people register and employers respond.</Text>
+        <Text size={1} muted>Updates automatically as people register and as partners are added or edited.</Text>
       </Stack>
     </Box>
   );

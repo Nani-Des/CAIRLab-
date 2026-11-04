@@ -1712,3 +1712,122 @@ a { color: inherit; }
 .cl-aipro-next-step strong i { color: var(--blue-primary); }
 .cl-aipro-next-step p { margin: 0; color: var(--text); }
 
+
+/* AI for Professionals: partner nomination check, partnership offer, uploads */
+.cl-aipro-lead { margin: 0; color: var(--text); font-size: 15px; line-height: 1.55; }
+.cl-aipro-linkbtn {
+  background: none; border: none; padding: 0; color: var(--blue-primary); font: inherit; font-weight: 600;
+  text-decoration: underline; cursor: pointer;
+}
+.cl-aipro-verified {
+  display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 12px;
+  background: #F0FDF4; border: 1.5px solid #86EFAC;
+}
+.cl-aipro-verified > i { color: #16A34A; font-size: 24px; }
+.cl-aipro-verified div { flex: 1; display: grid; gap: 2px; }
+.cl-aipro-verified strong { color: #166534; }
+.cl-aipro-verified span { color: var(--text); font-size: 14px; }
+.cl-aipro-partner-offer {
+  display: grid; gap: 16px; padding: 28px; border-radius: 14px; background: var(--white);
+  border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+.cl-aipro-partner-offer h3 { margin: 0; font-size: 24px; color: var(--ink); }
+.cl-aipro-partner-offer p { margin: 0; color: var(--text); line-height: 1.6; font-size: 16px; }
+.cl-aipro-partner-offer p.cl-form-hint { font-size: 13px; }
+.cl-aipro-t2p2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 640px) { .cl-aipro-t2p2 { grid-template-columns: 1fr 1fr; } }
+.cl-aipro-t2p2 div { display: grid; gap: 6px; padding: 18px; border-radius: 12px; color: var(--white); }
+.cl-aipro-t2p2 div:first-child { background: linear-gradient(135deg, #1E3A8A, #1D4ED8); }
+.cl-aipro-t2p2 div:last-child { background: linear-gradient(135deg, #0F766E, #179CA1); }
+.cl-aipro-t2p2 strong { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+.cl-aipro-t2p2 span { font-size: 14px; line-height: 1.5; opacity: 0.95; }
+.cl-aipro-offer-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.cl-form input.cl-aipro-file {
+  width: 100%; padding: 10px; border-style: dashed; background: var(--blue-subtle); cursor: pointer; font-size: 14px;
+}
+
+/* Four registration choices: 2×2 on tablets, one row on wide screens */
+@media (min-width: 900px) { .cl-aipro-roles { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1180px) { .cl-aipro-roles { grid-template-columns: repeat(4, 1fr); } }
+/* Partner manager page (app/initiatives/ai-for-professionals/manage) */
+.cl-aipro-nominees { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cl-aipro-nominees li {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px;
+  background: var(--blue-subtle);
+}
+.cl-aipro-nominees li > div { flex: 1; min-width: 200px; display: grid; gap: 2px; }
+.cl-aipro-nominees strong { color: var(--ink); }
+.cl-aipro-nominees li > div span { color: var(--text-soft); font-size: 13px; }
+.cl-aipro-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--white); color: var(--text-soft);
+}
+.cl-aipro-badge.ok { background: #DCFCE7; color: #166534; }
+.cl-aipro-notice-ok { margin: 0; padding: 12px 14px; border-radius: 8px; background: #F0FDF4; border: 1px solid #86EFAC; color: #166534; font-size: 14px; }
+
+/* Partner staff: "finish these steps" note after the nomination check */
+.cl-aipro-next-steps {
+  display: grid; gap: 8px; padding: 16px 20px; border-radius: 12px; background: #FFFBEB; border: 1.5px solid #FCD34D;
+  color: #78350F; font-size: 14px; line-height: 1.55;
+}
+.cl-aipro-next-steps > strong { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #78350F; }
+.cl-aipro-next-steps ol { margin: 0; padding-left: 22px; }
+/* Graduate transcript / CV upload boxes */
+.cl-form .cl-aipro-upload-label {
+  display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cl-form label.cl-aipro-upload {
+  position: relative; display: flex; align-items: center; gap: 14px; margin: 0; padding: 16px 18px; border-radius: 10px;
+  border: 2px dashed var(--blue-border); background: var(--blue-subtle); cursor: pointer;
+  text-transform: none; letter-spacing: normal; font-family: var(--font-body); transition: border-color 0.2s, background 0.2s;
+}
+.cl-form label.cl-aipro-upload:hover { border-color: var(--blue-primary); background: var(--white); }
+.cl-form label.cl-aipro-upload:focus-within { outline: 2px solid var(--blue-light); outline-offset: 2px; }
+.cl-aipro-upload > i {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 18px;
+}
+.cl-form label.cl-aipro-upload.has-file { border-style: solid; border-color: #86EFAC; background: #F0FDF4; }
+.cl-aipro-upload.has-file > i { background: #16A34A; }
+.cl-aipro-upload-text { display: grid; gap: 2px; min-width: 0; }
+.cl-aipro-upload-text strong { color: var(--ink); font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cl-aipro-upload-text small { color: var(--text-soft); font-size: 12px; }
+/* Keep the real input in the form (so "required" still blocks submit) but invisible */
+.cl-form input.cl-aipro-upload-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; padding: 0; border: 0; }
+.cl-aipro-wordcount { display: block; margin-top: 6px; font-size: 12px; color: var(--text-soft); text-align: right; }
+.cl-aipro-wordcount.over { color: #B91C1C; font-weight: 700; }
+
+/* Cybersecurity & AI Certification Initiative page (app/compute-share) */
+.cl-cert-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 640px) { .cl-cert-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .cl-cert-grid { grid-template-columns: repeat(3, 1fr); } }
+.cl-cert-card {
+  display: grid; align-content: start; gap: 10px; padding: 24px; border-radius: 14px; background: var(--white);
+  border: 1px solid var(--line); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.cl-cert-card:hover { transform: translateY(-3px); border-color: var(--blue-border); box-shadow: 0 14px 34px rgba(29, 78, 216, 0.12); }
+.cl-cert-card-top { display: flex; align-items: center; justify-content: space-between; }
+.cl-cert-icon {
+  width: 48px; height: 48px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: var(--white); font-size: 20px;
+}
+.cl-cert-code {
+  padding: 5px 12px; border-radius: 999px; background: var(--blue-subtle); color: var(--blue-primary);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+}
+.cl-cert-card h3 { margin: 4px 0 0; font-size: 19px; color: var(--ink); }
+.cl-cert-card p { margin: 0; color: var(--text); font-size: 15px; line-height: 1.55; }
+.cl-cert-for { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--teal, #179CA1); font-size: 13px; font-weight: 600; }
+.cl-cert-cta {
+  display: grid; justify-items: center; gap: 12px; text-align: center; padding: 36px 28px; border-radius: 16px;
+  background: var(--white); border: 1px solid var(--line);
+}
+.cl-cert-cta-icon {
+  width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--blue-subtle); color: var(--blue-primary); font-size: 22px;
+}
+.cl-cert-cta h2 { margin: 0; font-size: 26px; color: var(--ink); }
+.cl-cert-cta p { margin: 0; max-width: 520px; color: var(--text); font-size: 16px; line-height: 1.6; }
+.cl-cert-cta-email { font-size: 20px; font-weight: 700; color: var(--blue-primary); text-decoration: none; word-break: break-all; }
+.cl-cert-cta-email:hover { text-decoration: underline; }

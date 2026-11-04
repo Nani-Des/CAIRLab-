@@ -32,12 +32,14 @@ export async function sendMail({
   subject,
   html,
   replyTo,
+  attachments,
 }: {
   to: string;
   bcc?: string[];
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: { filename: string; content: Buffer }[];
 }) {
   await getTransport().sendMail({
     from: `"CAIRLab KNUST" <${process.env.GMAIL_USER}>`,
@@ -45,6 +47,7 @@ export async function sendMail({
     bcc,
     subject,
     replyTo,
+    attachments,
     html: `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#0F172A;max-width:560px">
       ${html}
       <p style="margin-top:28px;color:#64748B;font-size:13px">CAIRLab – Cybersecurity &amp; Artificial Intelligence Research Lab, KNUST</p>

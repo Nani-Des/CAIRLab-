@@ -15,6 +15,7 @@ import { homeStatsType } from './homeStats';
 import { aiProRegistrationType } from './aiProRegistration';
 import { aiProSettingsType } from './aiProSettings';
 import { aiProBroadcastType } from './aiProBroadcast';
+import { aiProPartnerType } from './aiProPartner';
 
 export const schemaTypes = [
   sitePopupType,
@@ -30,4 +31,5 @@ export const schemaTypes = [
   aiProRegistrationType,
   aiProSettingsType,
   aiProBroadcastType,
+  aiProPartnerType,
 ];

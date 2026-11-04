@@ -189,8 +189,8 @@ export default async function InitiativesPage() {
                     <>
                       <Link href={item.registerHref} className="cl-btn-blue">Register for training →</Link>
                       <span>
-                        Employers register their organisation and nominate staff; staff register with employer approval;
-                        graduates apply directly.
+                        Staff nominated by partner organisations register here; organisations can apply to become partners;
+                        graduates apply with their transcript and CV.
                       </span>
                     </>
                   ) : (

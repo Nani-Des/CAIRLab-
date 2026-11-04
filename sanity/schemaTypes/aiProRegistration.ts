@@ -25,6 +25,7 @@ export const aiProRegistrationType = defineType({
       options: {
         list: [
           { title: 'Employer', value: 'employer' },
+          { title: 'Registered (nominated by partner)', value: 'nominated' },
           { title: 'Pending approval', value: 'pending' },
           { title: 'Approved', value: 'approved' },
           { title: 'Rejected', value: 'rejected' },
@@ -56,6 +57,7 @@ export const aiProRegistrationType = defineType({
     defineField({ name: 'completionYear', title: 'Year of completion', type: 'string', hidden: onlyFor('graduate') }),
     defineField({ name: 'location', title: 'Town / region', type: 'string', hidden: onlyFor('graduate') }),
     defineField({ name: 'track', title: 'Track', type: 'string', hidden: onlyFor('employee', 'graduate') }),
+    defineField({ name: 'hub', title: 'Preferred hub (from nomination)', type: 'string', hidden: onlyFor('employee') }),
     defineField({ name: 'motivation', title: 'Why they want to join', type: 'text', hidden: onlyFor('graduate') }),
     defineField({ name: 'employerEmail', title: 'Employer / line manager email', type: 'string', hidden: onlyFor('employee') }),
     defineField({
@@ -76,6 +78,15 @@ export const aiProRegistrationType = defineType({
     }),
     defineField({ name: 'staffToNominate', title: 'Staff they would like to nominate', type: 'string', hidden: onlyFor('employer') }),
     defineField({ name: 'skillsGaps', title: 'Skills gaps in their workforce', type: 'text', hidden: onlyFor('employer') }),
+    defineField({ name: 'transcriptFileName', title: 'Transcript (file name)', type: 'string', hidden: onlyFor('graduate') }),
+    defineField({ name: 'cvFileName', title: 'CV (file name)', type: 'string', hidden: onlyFor('graduate') }),
+    defineField({
+      name: 'documentsSentTo',
+      title: 'Transcript & CV emailed to',
+      description: 'The documents are emailed to this inbox (not stored here, to keep them private).',
+      type: 'string',
+      hidden: onlyFor('graduate'),
+    }),
     defineField({ name: 'consentGiven', title: 'Agreed to data processing for the programme', type: 'boolean' }),
     defineField({ name: 'submittedAt', title: 'Submitted at', type: 'datetime' }),
     defineField({ name: 'decidedAt', title: 'Approved / rejected at', type: 'datetime', hidden: onlyFor('employee') }),
@@ -87,7 +98,7 @@ export const aiProRegistrationType = defineType({
     prepare: ({ name, org, role, status, email }) => ({
       title: `${name || 'Unnamed'}${org ? ` — ${org}` : ''}`,
       subtitle: `${{ employer: 'Employer', employee: 'Employee', graduate: 'Graduate' }[role as string] ?? role} · ${
-        { employer: 'Registered', pending: 'Pending approval', approved: 'Approved', rejected: 'Rejected', applied: 'Applied' }[status as string] ?? status
+        { employer: 'Registered', nominated: 'Registered (nominated)', pending: 'Pending approval', approved: 'Approved', rejected: 'Rejected', applied: 'Applied' }[status as string] ?? status
       }${email ? ` · ${email}` : ''}`,
     }),
   },

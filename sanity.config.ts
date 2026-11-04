@@ -11,6 +11,7 @@ import { apiVersion, dataset, projectId } from './sanity/env';
 import { schemaTypes } from './sanity/schemaTypes';
 import RegistrationSummary from './sanity/components/RegistrationSummary';
 import { SendBroadcastAction } from './sanity/actions/SendBroadcastAction';
+import AddPartner from './sanity/components/AddPartner';
 
 // Registrations filtered by status, newest first.
 const registrationList = (S: StructureBuilder, title: string, filter: string) =>
@@ -64,27 +65,32 @@ export default defineConfig({
                       .title('Registration open / closed')
                       .child(S.document().schemaType('aiProSettings').documentId('aiProSettings')),
                     S.divider(),
-                    S.listItem().title('All registrations').child(registrationList(S, 'All registrations', '')),
                     S.listItem()
-                      .title('Pending approval')
-                      .child(registrationList(S, 'Pending approval', ' && status == "pending"')),
+                      .title('Partner organisations & nominees')
+                      .child(
+                        S.documentTypeList('aiProPartner')
+                          .title('Partner organisations')
+                          .defaultOrdering([{ field: 'name', direction: 'asc' }])
+                          // No "+" here: new partners need a private ID, see AddPartner.
+                          .initialValueTemplates([])
+                      ),
                     S.listItem()
-                      .title('Approved')
-                      .child(registrationList(S, 'Approved', ' && status == "approved"')),
+                      .title('Add a partner organisation')
+                      .child(S.component(AddPartner).title('Add a partner organisation')),
+                    S.divider(),
                     S.listItem()
-                      .title('Rejected')
-                      .child(registrationList(S, 'Rejected', ' && status == "rejected"')),
+                      .title('Registered staff (nominated)')
+                      .child(registrationList(S, 'Registered staff', ' && role == "employee"')),
                     S.listItem()
                       .title('Graduate applications')
                       .child(registrationList(S, 'Graduate applications', ' && role == "graduate"')),
-                    S.listItem()
-                      .title('Employers')
-                      .child(registrationList(S, 'Employers', ' && role == "employer"')),
+                    S.listItem().title('All registrations').child(registrationList(S, 'All registrations', '')),
                   ])
               ),
             S.divider(),
             ...S.documentTypeListItems().filter(
-              (item) => !['sitePopup', 'homeStats', 'aiProRegistration', 'aiProSettings', 'aiProBroadcast'].includes(item.getId() ?? '')
+              (item) =>
+                !['sitePopup', 'homeStats', 'aiProRegistration', 'aiProSettings', 'aiProBroadcast', 'aiProPartner'].includes(item.getId() ?? '')
             ),
           ]),
     }),
@@ -98,5 +104,8 @@ export default defineConfig({
   // Broadcast messages get a "Send to recipients" button next to Publish.
   document: {
     actions: (prev, context) => (context.schemaType === 'aiProBroadcast' ? [...prev, SendBroadcastAction] : prev),
+    // Registrations are created by the website and partners by "Add a partner
+    // organisation" (private IDs), so keep them out of the global "+" menu.
+    newDocumentOptions: (prev) => prev.filter((t) => !['aiProRegistration', 'aiProPartner'].includes(t.templateId)),
   },
 });

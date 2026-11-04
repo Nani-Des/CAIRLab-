@@ -8,10 +8,9 @@
 import { defineField, defineType } from 'sanity';
 
 export const BROADCAST_AUDIENCES = [
-  { title: 'Employers', value: 'employers' },
-  { title: 'All employees (staff)', value: 'employees' },
-  { title: 'Employees — approved only', value: 'employeesApproved' },
-  { title: 'Employees — pending approval only', value: 'employeesPending' },
+  { title: 'Partner organisation contacts', value: 'employers' },
+  { title: 'All nominated staff (on partner lists)', value: 'nominees' },
+  { title: 'Registered staff (completed registration)', value: 'employees' },
   { title: 'Graduates', value: 'graduates' },
 ] as const;
 

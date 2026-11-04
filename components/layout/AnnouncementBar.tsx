@@ -43,7 +43,7 @@ export default function AnnouncementBar() {
       <div className="cl-announce-media" />
       <div className="cl-announce-inner">
         <div className="cl-announce-text">
-          <strong>CAIRLAB Compute Share Initiative</strong>
+          <strong>CAIRLAB Cybersecurity &amp; AI Certification Initiative</strong>
           <span>Are you interested in writing CEH or any other EC-Council exam?</span>
         </div>
         <Link href="/compute-share" className="cl-announce-cta">

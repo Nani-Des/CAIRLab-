@@ -8,10 +8,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageHero from '@/components/layout/PageHero';
-import RegistrationFlow from '@/components/ai-for-professionals/RegistrationFlow';
+import RegistrationFlow, { type Role } from '@/components/ai-for-professionals/RegistrationFlow';
 import { buildOpenGraph, buildTwitter } from '@/lib/seo';
 import { PROGRAMME_PATH } from '@/lib/aiForProfessionals';
 import { getAiProSettings } from '@/lib/aiProSettings';
+import { getPartnerNames } from '@/lib/aiProPartners';
 
 const TITLE = 'Register — AI for Professionals (KNUST–GIZ) — CAIRLab';
 const DESCRIPTION =
@@ -26,15 +27,17 @@ export const metadata: Metadata = {
 
 export default async function AiForProfessionalsPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const { role } = await searchParams;
-  const initialRole = role === 'employer' || role === 'employee' || role === 'graduate' ? role : undefined;
-  const settings = await getAiProSettings();
+  // ?role=partner|nonPartner|graduate preselects a path (older links used employee/employer).
+  const roles: Record<string, Role> = { partner: 'partner', employee: 'partner', manager: 'manager', employer: 'manager', nonPartner: 'nonPartner', graduate: 'graduate' };
+  const initialRole = role ? roles[role] : undefined;
+  const [settings, partners] = await Promise.all([getAiProSettings(), getPartnerNames()]);
 
   return (
     <>
       <PageHero
         kicker="Initiatives · KNUST × GIZ"
         title="AI for Professionals — Registration"
-        description="Employers register their organisation, staff register with their employer's approval, and graduates apply to join."
+        description="Staff nominated by partner organisations register here, organisations can find out how to become partners, and graduates apply with their transcript and CV."
         image="/images/projects-hero.jpg"
       />
 
@@ -44,7 +47,7 @@ export default async function AiForProfessionalsPage({ searchParams }: { searchP
             <Link href="/initiatives#ai-for-professionals">← Back to the programme</Link>
           </p>
           {settings.registrationOpen ? (
-            <RegistrationFlow initialRole={initialRole} />
+            <RegistrationFlow initialRole={initialRole} partners={partners} />
           ) : (
             <div className="cl-form-success">
               <div className="cl-aipro-closed-icon"><i className="fa-solid fa-lock" aria-hidden="true"></i></div>
