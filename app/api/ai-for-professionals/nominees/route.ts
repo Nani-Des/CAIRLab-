@@ -1,8 +1,9 @@
 // app/api/ai-for-professionals/nominees/route.ts
-// Lets a partner organisation's manager add or remove nominees from the
-// manage page (app/initiatives/ai-for-professionals/manage). Every request
-// carries the signed link token (lib/aiProManagerToken.ts), which says which
-// partner it's for — so a manager can only ever change their own list.
+// Lets a partner organisation's manager add nominees from the manage page
+// (app/initiatives/ai-for-professionals/manage); removing one is done by the
+// programme team in Studio. Every request carries the signed link token
+// (lib/aiProManagerToken.ts), which says which partner it's for — so a
+// manager can only ever change their own list.
 // Changes go straight into the partner's document in Sanity.
 
 import { randomUUID } from 'node:crypto';
@@ -38,15 +39,7 @@ export async function POST(request: Request) {
   if (!partner) return NextResponse.json({ error: 'Organisation not found.' }, { status: 404 });
 
   try {
-    if (body.action === 'remove') {
-      const key = str('key', 60);
-      const nominee = partner.nominees.find((n) => n.key === key);
-      if (!nominee) return NextResponse.json({ error: 'Nominee not found.' }, { status: 404 });
-      if (nominee.registered) {
-        return NextResponse.json({ error: `${nominee.fullName} has already registered, so they can't be removed here. Please contact the programme team.` }, { status: 409 });
-      }
-      await writeClient.patch(auth.partnerId).unset([`nominees[_key=="${key}"]`]).commit();
-    } else if (body.action === 'add') {
+    if (body.action === 'add') {
       const fullName = str('fullName');
       const email = str('email').toLowerCase();
       const track = str('track');

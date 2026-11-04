@@ -48,11 +48,6 @@ export default function ManageNominees({ token, partner, initial }: { token: str
     }
   }
 
-  async function remove(n: ManagedNominee) {
-    if (!window.confirm(`Remove ${n.fullName} from your nominations?`)) return;
-    if (await call({ action: 'remove', key: n.key })) setMessage({ tone: 'ok', text: `${n.fullName} has been removed.` });
-  }
-
   return (
     <div className="cl-aipro">
       <div className="cl-form">
@@ -70,10 +65,7 @@ export default function ManageNominees({ token, partner, initial }: { token: str
                 {n.registered ? (
                   <span className="cl-aipro-badge ok"><i className="fa-solid fa-circle-check" aria-hidden="true"></i> Registered</span>
                 ) : (
-                  <>
-                    <span className="cl-aipro-badge">Not registered yet</span>
-                    <button type="button" className="cl-aipro-linkbtn" onClick={() => remove(n)} disabled={busy}>Remove</button>
-                  </>
+                  <span className="cl-aipro-badge">Not registered yet</span>
                 )}
               </li>
             ))}
