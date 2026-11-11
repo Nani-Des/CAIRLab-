@@ -3,10 +3,12 @@
 //  - Partner staff (role "employee"): only accepted if their company + email
 //    match a nomination on a partner organisation (lib/aiProPartners.ts) —
 //    the nomination is their employer's approval. Saved as "nominated".
-//  - Graduate (multipart form with transcript + CV): saved as "applied"; the
-//    documents are emailed to the programme inbox (not stored in Sanity,
-//    whose files would be publicly reachable) and the applicant gets a
-//    confirmation.
+//  - Graduate (multipart form with transcript + CV): the files are uploaded
+//    to Sanity and the application saved as "applied" first, so applying
+//    never depends on email. Then the applicant gets a confirmation if Gmail
+//    can send; if not, the record stays "confirmation not sent" for staff to
+//    follow up manually. (Sanity file links are unguessable but not
+//    password-protected.)
 // Organisations that aren't partners yet are pointed to the partnership
 // proposal on the page itself and never reach this route.
 
@@ -111,9 +113,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'This application is for graduates only. Please enter the year you graduated.' }, { status: 400 });
     }
 
-    // Transcript + CV
-    const attachments: { filename: string; content: Buffer }[] = [];
-    const fileNames: Record<string, string> = {};
+    // Transcript + CV: checked first, then uploaded to Sanity and attached to
+    // the application, so applying never depends on email.
+    const documents: { key: 'transcript' | 'cv'; file: File; safeName: string }[] = [];
     for (const [key, label] of [['transcript', 'transcript'], ['cv', 'CV']] as const) {
       const file = form?.get(key);
       if (!(file instanceof File) || file.size === 0) {
@@ -127,11 +129,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Your ${label} is too large — please keep each file under 4 MB.` }, { status: 413 });
       }
       const safeName = `${key === 'cv' ? 'CV' : 'Transcript'} - ${fullName}${lower.slice(lower.lastIndexOf('.'))}`.replace(/[\\/:*?"<>|]/g, '');
-      attachments.push({ filename: safeName, content: Buffer.from(await file.arrayBuffer()) });
-      fileNames[key] = file.name.slice(0, 200);
+      documents.push({ key, file, safeName });
     }
 
-    const inbox = process.env.AIPRO_DOCUMENTS_TO || process.env.GMAIL_USER!;
+    const files: Record<string, { _type: 'file'; asset: { _type: 'reference'; _ref: string } }> = {};
+    const fileNames: Record<string, string> = {};
+    try {
+      for (const { key, file, safeName } of documents) {
+        const asset = await writeClient.assets.upload('file', Buffer.from(await file.arrayBuffer()), {
+          filename: safeName,
+          contentType: file.type || undefined,
+        });
+        files[key] = { _type: 'file', asset: { _type: 'reference', _ref: asset._id } };
+        fileNames[key] = file.name.slice(0, 200);
+      }
+    } catch (err) {
+      console.error('AI for Professionals: failed to upload graduate documents:', err);
+      return NextResponse.json({ error: "We couldn't upload your documents. Please try again in a few minutes." }, { status: 502 });
+    }
+
     const doc = {
       ...base,
       role: 'graduate',
@@ -145,30 +161,14 @@ export async function POST(request: Request) {
       location: str('location'),
       track,
       motivation,
+      transcript: files.transcript,
+      cv: files.cv,
       transcriptFileName: fileNames.transcript,
       cvFileName: fileNames.cv,
-      documentsSentTo: inbox,
+      confirmationEmailSent: false,
     };
 
-    // Email the documents first: an application without them is incomplete.
-    try {
-      await sendMail({
-        to: inbox,
-        replyTo: email,
-        subject: `Graduate application: ${fullName} (${track}) – ${PROGRAMME_NAME}`,
-        html: `<p><strong>New graduate application</strong></p>
-          <p><strong>${escapeHtml(fullName)}</strong> &lt;${escapeHtml(email)}&gt; · ${escapeHtml(base.phone)}<br/>
-          ${escapeHtml(qualification)}, ${escapeHtml(programmeOfStudy)} — ${escapeHtml(organisation)} (${escapeHtml(completionYear)})<br/>
-          Status: ${escapeHtml(studyStatus)} · Track: ${escapeHtml(track)}</p>
-          <p><strong>Why they want to join:</strong><br/>${escapeHtml(motivation).replace(/\n/g, '<br/>')}</p>
-          <p>Transcript and CV are attached. The full record is in Studio (AI for Professionals → Graduate applications).</p>`,
-        attachments,
-      });
-    } catch (err) {
-      console.error('AI for Professionals: graduate documents email failed:', err);
-      return NextResponse.json({ error: "We couldn't send your documents. Please try again in a few minutes." }, { status: 502 });
-    }
-
+    // Save the application first — email is only a courtesy afterwards.
     try {
       await writeClient.create(doc);
     } catch (err) {
@@ -176,6 +176,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to submit. Please try again later.' }, { status: 500 });
     }
 
+    // Confirmation to the applicant. If Gmail can't send (e.g. its daily
+    // limit), the application still counts; it stays marked "not sent" so
+    // staff can email them manually (Studio → Graduates: confirmation not sent).
     try {
       await sendMail({
         to: email,
@@ -185,6 +188,7 @@ export async function POST(request: Request) {
           application, transcript and CV, and will contact you about the next steps in the selection process.</p>
           ${spamTip('Please keep an eye on your spam or junk folder for our updates, and mark our emails as "Not spam".')}`,
       });
+      await writeClient.patch(doc._id).set({ confirmationEmailSent: true }).commit();
     } catch (err) {
       console.error('AI for Professionals: graduate confirmation email failed:', err);
     }

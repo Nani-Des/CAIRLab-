@@ -66,8 +66,11 @@ const GRADUATE_COLUMNS: [string, string][] = [
   ['Track', 'track'],
   ['Why they want to join', 'motivation'],
   ['Transcript file', 'transcriptFileName'],
+  ['Transcript link', 'transcriptUrl'],
   ['CV file', 'cvFileName'],
-  ['Documents emailed to', 'documentsSentTo'],
+  ['CV link', 'cvUrl'],
+  ['"Application received" email sent', 'confirmationEmailSent'],
+  ['Documents emailed to (older applications)', 'documentsSentTo'],
   ['Agreed to data processing', 'consentGiven'],
   ['Submitted', 'submittedAt'],
 ];
@@ -178,7 +181,7 @@ export default function RegistrationSummary() {
     setExporting(role);
     try {
       const rows = await client.fetch<Record<string, unknown>[]>(
-        '*[_type == "aiProRegistration" && role == $role] | order(submittedAt desc)',
+        '*[_type == "aiProRegistration" && role == $role] | order(submittedAt desc){ ..., "transcriptUrl": transcript.asset->url, "cvUrl": cv.asset->url }',
         { role }
       );
       const date = new Date().toISOString().slice(0, 10);

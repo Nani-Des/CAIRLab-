@@ -5,7 +5,7 @@
 // so these are visible in Studio but never in public queries. The approval
 // link's code is only kept as a hash, so it can't be copied from here.
 
-import { defineField, defineType, type ConditionalPropertyCallbackContext } from 'sanity';
+import { defineField, defineType, type ConditionalPropertyCallbackContext, type FieldDefinition } from 'sanity';
 
 // Show each field only on the kinds of record it applies to.
 type Role = 'employer' | 'employee' | 'graduate';
@@ -16,8 +16,9 @@ export const aiProRegistrationType = defineType({
   name: 'aiProRegistration',
   title: 'AI for Professionals Registration',
   type: 'document',
-  readOnly: true,
-  fields: [
+  // Everything is read-only except the "Application received email sent"
+  // tick, which staff switch on after emailing an applicant manually.
+  fields: ([
     defineField({
       name: 'status',
       title: 'Status',
@@ -78,25 +79,41 @@ export const aiProRegistrationType = defineType({
     }),
     defineField({ name: 'staffToNominate', title: 'Staff they would like to nominate', type: 'string', hidden: onlyFor('employer') }),
     defineField({ name: 'skillsGaps', title: 'Skills gaps in their workforce', type: 'text', hidden: onlyFor('employer') }),
-    defineField({ name: 'transcriptFileName', title: 'Transcript (file name)', type: 'string', hidden: onlyFor('graduate') }),
-    defineField({ name: 'cvFileName', title: 'CV (file name)', type: 'string', hidden: onlyFor('graduate') }),
+    defineField({
+      name: 'transcript',
+      title: 'Transcript',
+      description: 'Click the file to open or download it.',
+      type: 'file',
+      hidden: onlyFor('graduate'),
+    }),
+    defineField({ name: 'cv', title: 'CV', description: 'Click the file to open or download it.', type: 'file', hidden: onlyFor('graduate') }),
+    defineField({ name: 'transcriptFileName', title: 'Transcript (original file name)', type: 'string', hidden: onlyFor('graduate') }),
+    defineField({ name: 'cvFileName', title: 'CV (original file name)', type: 'string', hidden: onlyFor('graduate') }),
+    defineField({
+      name: 'confirmationEmailSent',
+      title: '"Application received" email sent',
+      description:
+        'No = the automatic email could not be sent (e.g. the Gmail daily limit was reached). Email this applicant manually, then switch this on and click Publish to take them off the "confirmation not sent" list.',
+      type: 'boolean',
+      hidden: ({ document }) => document?.role !== 'graduate' || document?.confirmationEmailSent === undefined,
+    }),
     defineField({
       name: 'documentsSentTo',
       title: 'Transcript & CV emailed to',
-      description: 'The documents are emailed to this inbox (not stored here, to keep them private).',
+      description: 'Older applications: the documents were emailed to this inbox instead of being stored here.',
       type: 'string',
-      hidden: onlyFor('graduate'),
+      hidden: ({ document }) => document?.role !== 'graduate' || !document?.documentsSentTo,
     }),
     defineField({ name: 'consentGiven', title: 'Agreed to data processing for the programme', type: 'boolean' }),
     defineField({ name: 'submittedAt', title: 'Submitted at', type: 'datetime' }),
     defineField({ name: 'decidedAt', title: 'Approved / rejected at', type: 'datetime', hidden: onlyFor('employee') }),
     defineField({ name: 'approvalTokenHash', title: 'Approval code (hashed)', type: 'string', hidden: true }),
-  ],
+  ] as FieldDefinition[]).map((field) => (field.name === 'confirmationEmailSent' ? field : { ...field, readOnly: true })),
   orderings: [{ title: 'Newest first', name: 'submittedDesc', by: [{ field: 'submittedAt', direction: 'desc' }] }],
   preview: {
-    select: { name: 'fullName', org: 'organisation', role: 'role', status: 'status', email: 'email' },
-    prepare: ({ name, org, role, status, email }) => ({
-      title: `${name || 'Unnamed'}${org ? ` — ${org}` : ''}`,
+    select: { name: 'fullName', org: 'organisation', role: 'role', status: 'status', email: 'email', confirmed: 'confirmationEmailSent' },
+    prepare: ({ name, org, role, status, email, confirmed }) => ({
+      title: `${confirmed === false ? '✉️ ' : ''}${name || 'Unnamed'}${org ? ` — ${org}` : ''}`,
       subtitle: `${{ employer: 'Employer', employee: 'Employee', graduate: 'Graduate' }[role as string] ?? role} · ${
         { employer: 'Registered', nominated: 'Registered (nominated)', pending: 'Pending approval', approved: 'Approved', rejected: 'Rejected', applied: 'Applied' }[status as string] ?? status
       }${email ? ` · ${email}` : ''}`,

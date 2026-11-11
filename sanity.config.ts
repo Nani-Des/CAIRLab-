@@ -84,6 +84,15 @@ export default defineConfig({
                     S.listItem()
                       .title('Graduate applications')
                       .child(registrationList(S, 'Graduate applications', ' && role == "graduate"')),
+                    S.listItem()
+                      .title('Graduates: confirmation not sent (email manually)')
+                      .child(
+                        registrationList(
+                          S,
+                          'Confirmation not sent',
+                          ' && role == "graduate" && confirmationEmailSent == false'
+                        )
+                      ),
                     S.listItem().title('All registrations').child(registrationList(S, 'All registrations', '')),
                   ])
               ),

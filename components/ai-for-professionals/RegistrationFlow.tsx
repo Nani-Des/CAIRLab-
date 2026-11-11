@@ -135,8 +135,8 @@ export default function RegistrationFlow({ initialRole, partners }: { initialRol
           <>
             <h3>Application received!</h3>
             <p>
-              Thank you for applying. We&apos;ve received your application, transcript and CV, and sent a confirmation to
-              your email. We&apos;ll contact you about the next steps in the selection process.
+              Thank you for applying. We&apos;ve received your application, transcript and CV. A confirmation email is on
+              its way (it may take a while to arrive), and we&apos;ll contact you about the next steps in the selection process.
             </p>
           </>
         ) : (
