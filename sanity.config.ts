@@ -75,12 +75,30 @@ export default defineConfig({
                           .initialValueTemplates([])
                       ),
                     S.listItem()
+                      .title('Nominees: invitation not sent (email manually)')
+                      .child(
+                        S.documentTypeList('aiProPartner')
+                          .title('Partners with uninvited nominees')
+                          .filter('_type == "aiProPartner" && count(nominees[invitationEmailSent == false]) > 0')
+                          .defaultOrdering([{ field: 'name', direction: 'asc' }])
+                          .initialValueTemplates([])
+                      ),
+                    S.listItem()
                       .title('Add a partner organisation')
                       .child(S.component(AddPartner).title('Add a partner organisation')),
                     S.divider(),
                     S.listItem()
                       .title('Registered staff (nominated)')
                       .child(registrationList(S, 'Registered staff', ' && role == "employee"')),
+                    S.listItem()
+                      .title('Registered staff: confirmation not sent (email manually)')
+                      .child(
+                        registrationList(
+                          S,
+                          'Confirmation not sent',
+                          ' && role == "employee" && confirmationEmailSent == false'
+                        )
+                      ),
                     S.listItem()
                       .title('Graduate applications')
                       .child(registrationList(S, 'Graduate applications', ' && role == "graduate"')),

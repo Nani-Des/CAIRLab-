@@ -91,11 +91,11 @@ export const aiProRegistrationType = defineType({
     defineField({ name: 'cvFileName', title: 'CV (original file name)', type: 'string', hidden: onlyFor('graduate') }),
     defineField({
       name: 'confirmationEmailSent',
-      title: '"Application received" email sent',
+      title: 'Confirmation email sent ("Application received" / "You\'re registered")',
       description:
-        'No = the automatic email could not be sent (e.g. the Gmail daily limit was reached). Email this applicant manually, then switch this on and click Publish to take them off the "confirmation not sent" list.',
+        'No = the automatic email could not be sent (e.g. the Gmail daily limit was reached). Email this person manually, then switch this on and click Publish to take them off the "confirmation not sent" list.',
       type: 'boolean',
-      hidden: ({ document }) => document?.role !== 'graduate' || document?.confirmationEmailSent === undefined,
+      hidden: ({ document }) => document?.confirmationEmailSent === undefined,
     }),
     defineField({
       name: 'documentsSentTo',

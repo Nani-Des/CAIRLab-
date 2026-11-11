@@ -224,6 +224,7 @@ export async function POST(request: Request) {
       track,
       hub: check.nominee.hub,
       surveyCompleted: true,
+      confirmationEmailSent: false,
     });
   } catch (err) {
     console.error('AI for Professionals: failed to save staff registration:', err);
@@ -241,7 +242,10 @@ export async function POST(request: Request) {
         ${emailButton(`${SITE_URL}/initiatives#ai-for-professionals`, 'About the programme →')}
         ${spamTip('Please keep an eye on your spam or junk folder for our updates, and mark our emails as "Not spam".')}`,
     });
+    await writeClient.patch(base._id).set({ confirmationEmailSent: true }).commit();
   } catch (err) {
+    // Registration still counts; it stays "confirmation not sent" in Studio
+    // (Registered staff: confirmation not sent) for staff to email manually.
     console.error('AI for Professionals: staff confirmation email failed:', err);
   }
 

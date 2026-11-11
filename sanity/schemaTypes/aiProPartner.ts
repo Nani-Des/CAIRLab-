@@ -65,10 +65,21 @@ export const aiProPartnerType = defineType({
             defineField({ name: 'addedBy', title: 'Nominated on the website by', type: 'string', readOnly: true }),
             defineField({ name: 'addedAt', title: 'Nominated on the website at', type: 'datetime', readOnly: true }),
             defineField({ name: 'nextStepsEmailAt', title: '"Next steps" email last sent', type: 'datetime', readOnly: true }),
+            defineField({
+              name: 'invitationEmailSent',
+              title: '"You\'ve been nominated" email sent',
+              description:
+                'Only for people nominated on the website by a manager. No = the email could not be sent (e.g. the Gmail daily limit was reached). Let this person know manually, then switch this on and click Publish.',
+              type: 'boolean',
+              hidden: ({ parent }) => (parent as { invitationEmailSent?: boolean } | undefined)?.invitationEmailSent === undefined,
+            }),
           ],
           preview: {
-            select: { title: 'fullName', email: 'email', track: 'track' },
-            prepare: ({ title, email, track }) => ({ title, subtitle: [email, track].filter(Boolean).join(' · ') }),
+            select: { title: 'fullName', email: 'email', track: 'track', invited: 'invitationEmailSent' },
+            prepare: ({ title, email, track, invited }) => ({
+              title: `${invited === false ? '✉️ ' : ''}${title || ''}`,
+              subtitle: [email, track, invited === false ? 'invitation not sent' : ''].filter(Boolean).join(' · '),
+            }),
           },
         }),
       ],
@@ -79,10 +90,12 @@ export const aiProPartnerType = defineType({
   preview: {
     select: { name: 'name', nominees: 'nominees', contact: 'contactName' },
     prepare: ({ name, nominees, contact }) => {
-      const count = Array.isArray(nominees) ? nominees.length : 0;
+      const list = Array.isArray(nominees) ? (nominees as { invitationEmailSent?: boolean }[]) : [];
+      const count = list.length;
+      const uninvited = list.filter((n) => n.invitationEmailSent === false).length;
       return {
         title: name || 'Unnamed partner',
-        subtitle: `${count ? `${count} nominated staff` : 'No nominees yet'}${contact ? ` · ${contact}` : ''}`,
+        subtitle: `${count ? `${count} nominated staff` : 'No nominees yet'}${uninvited ? ` · ✉️ ${uninvited} not invited` : ''}${contact ? ` · ${contact}` : ''}`,
       };
     },
   },

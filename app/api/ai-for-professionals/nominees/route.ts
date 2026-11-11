@@ -61,12 +61,13 @@ export async function POST(request: Request) {
         );
       }
 
+      const nomineeKey = randomUUID().slice(0, 12);
       await writeClient
         .patch(auth.partnerId)
         .setIfMissing({ nominees: [] })
         .append('nominees', [
           {
-            _key: randomUUID().slice(0, 12),
+            _key: nomineeKey,
             _type: 'nominee',
             fullName,
             email,
@@ -76,14 +77,18 @@ export async function POST(request: Request) {
             hub,
             addedBy: auth.email,
             addedAt: new Date().toISOString(),
+            invitationEmailSent: false,
           },
         ])
         .commit();
 
       // Let the nominee know they can now register (best effort; awaited so
-      // it isn't cut off when the request finishes on serverless hosts).
+      // it isn't cut off when the request finishes on serverless hosts). If it
+      // can't be sent (e.g. Gmail's daily limit), the nominee stays marked
+      // "invitation not sent" in Studio for staff to follow up manually.
       if (mailerConfigured()) {
-        await sendMail({
+        try {
+          await sendMail({
           to: email,
           replyTo: auth.email,
           subject: `You've been nominated – ${PROGRAMME_NAME}`,
@@ -98,7 +103,14 @@ export async function POST(request: Request) {
               <li><strong>Fill in your registration details</strong> and submit.</li>
             </ol>
             ${emailButton(`${SITE_URL}${PROGRAMME_PATH}?role=partner`, 'Check my nomination →')}`,
-        }).catch((err) => console.error('AI for Professionals: nominee invitation email failed:', err));
+          });
+          await writeClient
+            .patch(auth.partnerId)
+            .set({ [`nominees[_key=="${nomineeKey}"].invitationEmailSent`]: true })
+            .commit();
+        } catch (err) {
+          console.error('AI for Professionals: nominee invitation email failed:', err);
+        }
       }
     } else {
       return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
