@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import SiteChrome from "@/components/layout/SiteChrome";
 import { SITE_URL, buildOpenGraph, buildTwitter } from "@/lib/seo";
-import { organizationSchema, StructuredData } from "@/lib/structuredData";
+import { organizationSchema, StructuredData, websiteSchema } from "@/lib/structuredData";
 import { client } from "@/sanity/lib/client";
 import "./globals.css";
 
@@ -75,6 +75,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           crossOrigin="anonymous"
         />
         <StructuredData data={organizationSchema()} />
+        <StructuredData data={websiteSchema()} />
       </head>
       <body className="min-h-full flex flex-col">
         <SiteChrome sitePopup={sitePopup}>{children}</SiteChrome>

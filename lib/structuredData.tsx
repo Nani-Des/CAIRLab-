@@ -32,6 +32,19 @@ export function organizationSchema() {
   };
 }
 
+// Tells Google which name to show above our address in search results
+// ("site name"). Without it Google guesses, and picked "KNUST" from the
+// knust.edu.gh domain. https://developers.google.com/search/docs/appearance/site-names
+export function websiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'CAIRLab',
+    alternateName: ['CAIRLab KNUST', 'Cybersecurity and Artificial Intelligence Research Laboratory'],
+    url: `${SITE_URL}/`,
+  };
+}
+
 export function newsArticleSchema(article: {
   title: string;
   excerpt: string;
