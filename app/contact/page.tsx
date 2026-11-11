@@ -63,9 +63,8 @@ export default function ContactPage() {
                 <div className="cl-contact-icon"><i className="fa-solid fa-envelope" aria-hidden="true"></i></div>
                 <div>
                   <h4>Email Us</h4>
-                  <p>info@cairlab.org</p>
-                  <p>research@cairlab.org</p>
-                  <a href="mailto:info@cairlab.org" className="cl-contact-action">
+                  <p>cairlabknust@gmail.com</p>
+                  <a href="mailto:cairlabknust@gmail.com" className="cl-contact-action">
                     Send Email <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
                   </a>
                 </div>
