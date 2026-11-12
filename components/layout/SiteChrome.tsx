@@ -15,6 +15,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import ScrollProgress, { type SitePopupData } from './ScrollProgress';
 import LiveRefresh from './LiveRefresh';
+import Clarity from './Clarity';
 
 export default function SiteChrome({
   children,
@@ -39,6 +40,7 @@ export default function SiteChrome({
       <Footer />
       <ScrollProgress sitePopup={sitePopup} />
       <LiveRefresh />
+      <Clarity />
     </div>
   );
 }
