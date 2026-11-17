@@ -106,6 +106,13 @@ export const aiProRegistrationType = defineType({
     }),
     defineField({ name: 'consentGiven', title: 'Agreed to data processing for the programme', type: 'boolean' }),
     defineField({ name: 'submittedAt', title: 'Submitted at', type: 'datetime' }),
+    defineField({
+      name: 'enteredManually',
+      title: 'Added by hand in Studio',
+      description: 'This person did not register on the website; a team member added them ("Add a registered staff member").',
+      type: 'boolean',
+      hidden: ({ document }) => !document?.enteredManually,
+    }),
     defineField({ name: 'decidedAt', title: 'Approved / rejected at', type: 'datetime', hidden: onlyFor('employee') }),
     defineField({ name: 'approvalTokenHash', title: 'Approval code (hashed)', type: 'string', hidden: true }),
   ] as FieldDefinition[]).map((field) => (field.name === 'confirmationEmailSent' ? field : { ...field, readOnly: true })),

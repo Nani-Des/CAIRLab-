@@ -12,6 +12,7 @@ import { schemaTypes } from './sanity/schemaTypes';
 import RegistrationSummary from './sanity/components/RegistrationSummary';
 import { SendBroadcastAction } from './sanity/actions/SendBroadcastAction';
 import AddPartner from './sanity/components/AddPartner';
+import { AddNominee, AddRegisteredStaff } from './sanity/components/AddStaff';
 
 // Registrations filtered by status, newest first.
 const registrationList = (S: StructureBuilder, title: string, filter: string) =>
@@ -75,6 +76,17 @@ export default defineConfig({
                           .initialValueTemplates([])
                       ),
                     S.listItem()
+                      .title('Partners: no staff registered yet')
+                      .child(
+                        S.documentTypeList('aiProPartner')
+                          .title('No staff registered yet')
+                          .filter(
+                            '_type == "aiProPartner" && count(*[_type == "aiProRegistration" && role == "employee" && lower(organisation) == lower(^.name)]) == 0'
+                          )
+                          .defaultOrdering([{ field: 'name', direction: 'asc' }])
+                          .initialValueTemplates([])
+                      ),
+                    S.listItem()
                       .title('Nominees: invitation not sent (email manually)')
                       .child(
                         S.documentTypeList('aiProPartner')
@@ -86,6 +98,12 @@ export default defineConfig({
                     S.listItem()
                       .title('Add a partner organisation')
                       .child(S.component(AddPartner).title('Add a partner organisation')),
+                    S.listItem()
+                      .title('Add a nominee')
+                      .child(S.component(AddNominee).title('Add a nominee')),
+                    S.listItem()
+                      .title('Add a registered staff member')
+                      .child(S.component(AddRegisteredStaff).title('Add a registered staff member')),
                     S.divider(),
                     S.listItem()
                       .title('Registered staff (nominated)')

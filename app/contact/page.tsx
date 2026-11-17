@@ -52,9 +52,9 @@ export default function ContactPage() {
                 <div className="cl-contact-icon"><i className="fa-solid fa-phone" aria-hidden="true"></i></div>
                 <div>
                   <h4>Call Us</h4>
-                  <p>+233 54 404 3688</p>
+                  <p>+233 55 019 0950</p>
                   <p>Mon &ndash; Fri, 9:00 AM &ndash; 6:00 PM</p>
-                  <a href="tel:+233544043688" className="cl-contact-action">
+                  <a href="tel:+233550190950" className="cl-contact-action">
                     Call Now <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
                   </a>
                 </div>
