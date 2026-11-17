@@ -1,11 +1,10 @@
 // app/api/revalidate/route.ts
 // Called by a Sanity webhook whenever content is published, updated or
 // deleted, so the site's cached pages are rebuilt straight away instead of
-// waiting out each page's 60-second `revalidate` window. Set up in
+// waiting out each page's hourly `revalidate` window. Set up in
 // sanity.io/manage > API > Webhooks (URL: https://<site>/api/revalidate,
 // POST, with a secret matching SANITY_REVALIDATE_SECRET — see
-// .env.local.example). Open tabs then pick the change up via
-// components/layout/LiveRefresh.tsx.
+// .env.local.example). Visitors see the change on their next page load.
 
 import { revalidatePath } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';

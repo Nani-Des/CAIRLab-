@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: buildTwitter(TITLE, DESCRIPTION),
 };
 
-export const revalidate = 60;
+export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
 const FALLBACK_TEAM: Member[] = TEAM.map((m) => ({ ...m, slug: slugify(m.name) }));
 

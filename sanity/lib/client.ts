@@ -9,8 +9,9 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  // Not the CDN: Next.js already caches every page, so Sanity is only asked
-  // when a page is rebuilt — and right after a publish (see
-  // app/api/revalidate/route.ts) the CDN can still be serving the old copy.
-  useCdn: false,
+  // Sanity's CDN: reads count against the (much larger) API CDN allowance
+  // instead of the API Requests quota, which the site was close to using up.
+  // The CDN is purged when content is published, and the revalidate webhook
+  // (app/api/revalidate/route.ts) waits for that before rebuilding pages.
+  useCdn: true,
 });

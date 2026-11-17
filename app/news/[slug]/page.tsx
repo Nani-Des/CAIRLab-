@@ -13,7 +13,7 @@ import { urlFor } from '@/sanity/lib/image';
 import { buildOpenGraph, buildTwitter, DEFAULT_OG_IMAGE, SITE_URL } from '@/lib/seo';
 import { newsArticleSchema, StructuredData } from '@/lib/structuredData';
 
-export const revalidate = 60;
+export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
 type Article = {
   title: string;

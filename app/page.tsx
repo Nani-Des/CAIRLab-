@@ -13,7 +13,7 @@ import VideoPlayer from '@/components/media/VideoPlayer';
 import { client } from '@/sanity/lib/client';
 import { urlFor } from '@/sanity/lib/image';
 
-export const revalidate = 60;
+export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
 const MEDIA_GRADIENTS = [
   'linear-gradient(135deg,#1E3A8A,#1D4ED8)',

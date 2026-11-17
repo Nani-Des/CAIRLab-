@@ -20,7 +20,7 @@ import PageHero from '@/components/layout/PageHero';
 import { buildOpenGraph, buildTwitter, DEFAULT_OG_IMAGE } from '@/lib/seo';
 import { getAiProSettings } from '@/lib/aiProSettings';
 
-export const revalidate = 60;
+export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
 // Ongoing programmes shown under "Initiatives".
 const INITIATIVES = [

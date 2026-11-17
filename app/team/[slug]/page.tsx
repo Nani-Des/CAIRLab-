@@ -15,7 +15,7 @@ import { client } from '@/sanity/lib/client';
 import { urlFor } from '@/sanity/lib/image';
 import { personSchema, StructuredData } from '@/lib/structuredData';
 
-export const revalidate = 60;
+export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
 type Member = {
   name: string;
