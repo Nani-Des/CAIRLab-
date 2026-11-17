@@ -17,6 +17,13 @@ import { personSchema, StructuredData } from '@/lib/structuredData';
 
 export const revalidate = 3600; // hourly safety net; publishing in Studio refreshes pages at once (app/api/revalidate)
 
+// Without this, Next.js renders every visit fresh (no caching) because it
+// doesn't know which slugs exist. An empty list means: build each page the
+// first time it's visited, then serve it from cache (refreshed hourly or on publish).
+export function generateStaticParams() {
+  return [];
+}
+
 type Member = {
   name: string;
   badge: string;
