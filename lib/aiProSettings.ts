@@ -13,7 +13,11 @@ const DEFAULT_CLOSED_MESSAGE =
 export async function getAiProSettings(): Promise<AiProSettings> {
   try {
     const doc = await client.fetch<{ registrationOpen?: boolean; closedMessage?: string } | null>(
-      '*[_id == "aiProSettings"][0]{ registrationOpen, closedMessage }'
+      '*[_id == "aiProSettings"][0]{ registrationOpen, closedMessage }',
+      {},
+      // Cached 5 minutes (the registration page is built on every visit);
+      // publishing the setting in Studio clears it via the revalidate webhook.
+      { next: { revalidate: 300, tags: ['sanity'] } }
     );
     return {
       registrationOpen: doc?.registrationOpen !== false,

@@ -6,7 +6,7 @@
 // POST, with a secret matching SANITY_REVALIDATE_SECRET — see
 // .env.local.example). Visitors see the change on their next page load.
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { parseBody } from 'next-sanity/webhook';
 
@@ -27,5 +27,8 @@ export async function POST(request: NextRequest) {
   // Content shows up across many pages (homepage teasers, listings, detail
   // pages, the sitemap), so rebuild everything rather than guess which.
   revalidatePath('/', 'layout');
+  // Also drop cached Sanity reads (site popup, registration settings,
+  // partner list) so they're fetched fresh on the next visit.
+  revalidateTag('sanity', { expire: 0 });
   return NextResponse.json({ revalidated: true, type: body?._type ?? null });
 }

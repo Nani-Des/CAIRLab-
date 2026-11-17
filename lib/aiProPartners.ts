@@ -12,7 +12,14 @@ export type Nominee = { fullName: string; email: string; jobTitle: string; track
 
 export async function getPartnerNames(): Promise<string[]> {
   try {
-    const names = await writeClient.fetch<(string | null)[]>('*[_type == "aiProPartner" && defined(name)] | order(name asc).name');
+    // Cached 5 minutes: only the company picker uses this, and it was read on
+    // every registration page visit (~22k requests a week). Nomination checks
+    // below are never cached.
+    const names = await writeClient.fetch<(string | null)[]>(
+      '*[_type == "aiProPartner" && defined(name)] | order(name asc).name',
+      {},
+      { next: { revalidate: 300, tags: ['sanity'] } }
+    );
     return [...new Set(names.filter((n): n is string => Boolean(n && n.trim())).map((n) => n.trim()))];
   } catch (err) {
     console.error('Failed to load partner organisations:', err);

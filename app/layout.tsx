@@ -35,8 +35,12 @@ export const metadata: Metadata = {
 // the same local network. Fetching server-side sidesteps that entirely.
 async function getSitePopup() {
   try {
+    // Cached for an hour (every page render used to ask Sanity — ~44k
+    // requests a week); publishing clears it via the revalidate webhook.
     const doc = await client.fetch(
-      `*[_type == "sitePopup"][0]{ enabled, badge, title, tagline, linkText, linkHref }`
+      `*[_type == "sitePopup"][0]{ enabled, badge, title, tagline, linkText, linkHref }`,
+      {},
+      { next: { revalidate: 3600, tags: ['sanity'] } }
     );
     if (doc?.title && doc.enabled !== false) {
       return {
